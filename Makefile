@@ -1,4 +1,3 @@
-
 OBJECTS=donkey_server.o donkey_base_connection.o donkey_http.o
 
 CXXFLAGS=-g -D_DONKEY_DEBUG

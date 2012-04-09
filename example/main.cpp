@@ -18,27 +18,32 @@ class MyHttpClient: public DonkeyHttpClient {
 };
 
 class PSConnection: public DonkeyBaseConnection {
-  /* over load virtual func */
+  virtual enum READ_STATUS RecvData() {
+    char *resp = (char *)evbuffer_pullup(get_input_buffer(), -1);
+    dlog1("PSConnection::%s: %s\n", __func__, resp);
+    evbuffer_drain(get_input_buffer(), -1); 
+  }
 };
 
-class MyConnection: public DonkeyBaseConnection {
+class SrvConnection: public DonkeyBaseConnection {
   virtual void ConnectedCallback() {
-    dlog1("new MyConnection fd:%d %s:%d\n", fd_, host_.c_str(), port_);
+    dlog1("new SrvConnection fd:%d %s:%d\n", fd_, host_.c_str(), port_);
   }
   
   virtual void CloseCallback() {
-    dlog1("MyConnection close fd:%d %s:%d\n",
+    dlog1("SrvConnection close fd:%d %s:%d\n",
         fd_, host_.c_str(), port_); 
   }
 
   virtual void ErrorCallback() {
-    dlog1("MyConnection Error %s\n", this->get_error_string());
+    dlog1("SrvConnection Error %s\n", this->get_error_string());
   }
 
   virtual void WriteCallback() {
-    dlog1("MyConnection %s\n", __func__);
+    dlog1("SrvConnection %s\n", __func__);
 
     //visit back server http server
+    //SendToBackServer();
     //VisitHttpServer();
   }
 
@@ -47,11 +52,14 @@ class MyConnection: public DonkeyBaseConnection {
     size_t rbuf_size = evbuffer_get_length(buf);
     size_t total_size = 8;
 
-    if (rbuf_size < total_size)
+    if (rbuf_size < total_size) {
+      dlog1("READ_NEED_MORE_DATA\n");
       return READ_NEED_MORE_DATA;
+    }
 
-    AddOutputBuffer("Welcom to donkey-server!");
+    AddOutputBuffer("Welcom to donkey-server!\n");
     StartWrite();
+    set_keep_alive(true);
 
     evbuffer_drain(buf, total_size);
     return READ_ALL_DATA;
@@ -75,8 +83,9 @@ class MyConnection: public DonkeyBaseConnection {
         return;
       }
     }
-
-    ps_conn_->AddOutputBuffer("Hello, I'm donkey-server");
+  
+    ps_conn_->set_keep_alive(true);
+    ps_conn_->AddOutputBuffer("GET / HTTP/1.1\r\nConnection: keep-alive\r\n\r\n");
     
     if (!ps_conn_->IsConnected())
       ps_conn_->Connect();
@@ -115,15 +124,18 @@ class MyConnection: public DonkeyBaseConnection {
   static MyHttpClient * s_http_client_;  
 };
 
-PSConnection * MyConnection::ps_conn_ = NULL;
-MyHttpClient * MyConnection::s_http_client_ = NULL;
+PSConnection * SrvConnection::ps_conn_ = NULL;
+MyHttpClient * SrvConnection::s_http_client_ = NULL;
 
 class MyServer: public DonkeyServer {
   virtual void ClockCallback() {
   }
 
   virtual DonkeyBaseConnection *NewConnection() {
-    return new MyConnection(); 
+    return new SrvConnection(); 
+  }
+
+  virtual void ConnectionMade(DonkeyBaseConnection *conn) {
   }
 };
 
@@ -138,7 +150,7 @@ int main(int argc, char **argv) {
   dlog1("server start ......\n");
 
   signal(SIGPIPE, SIG_IGN);
-
+  signal(SIGHUP, SIG_IGN);
 
   if (!server->StartListenTCP(NULL, PORT, 1024))
     return 1;
