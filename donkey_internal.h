@@ -1,0 +1,43 @@
+/**
+ * author:lijian2@ucweb.com
+ * date:2012-03-23
+ */
+
+#ifndef __DONKEY_INTERVAL_INCLUDE__
+#define __DONKEY_INTERVAL_INCLUDE__
+
+enum READ_STATUS {
+  READ_BAD_CLIENT,
+  READ_NEED_MORE_DATA,
+  READ_ALL_DATA,
+  READ_MEMORY_ERROR,
+  READ_INNER_ERROR
+};
+
+enum DonkeyConnectionKind {
+  CON_INCOMING,
+  CON_OUTGOING
+};
+
+#define DK_CONNECT_TIMEOUT 10
+#define DK_READ_TIMEOUT    10
+#define DK_WRITE_TIMEOUT   10
+
+enum DonkeyConnectionState {
+  DKCON_DISCONNECTED,
+  DKCON_CONNECTING,
+  DKCON_IDLE,
+  DKCON_READING,
+  DKCON_WRITING
+};
+
+enum DonkeyConnectionError {
+  DKCON_ERROR_NONE, 
+  DKCON_ERROR_TIMEOUT,
+  DKCON_ERROR_EOF,
+  DKCON_ERROR_ERRNO, 
+  DKCON_ERROR_BUFFER,
+  DKCON_ERROR_PARSE_ERROR
+};
+
+#endif
