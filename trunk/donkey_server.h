@@ -34,7 +34,6 @@ public:
 
   void AddFreeConn(DonkeyBaseConnection *conn);
 
-  DonkeyBaseConnection *NewConnection();
 
   struct event_base *get_base() {
     return base_; 
@@ -46,6 +45,11 @@ public:
 
 protected:
   virtual void ClockCallback() {
+  }
+
+  virtual DonkeyBaseConnection *NewConnection();
+
+  virtual void ConnectionMade(DonkeyBaseConnection *conn) {
   }
 
 private:

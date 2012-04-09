@@ -70,14 +70,7 @@ bool DonkeyBaseConnection::Init(struct event_base *base,
 bool DonkeyBaseConnection::StartRead() {
   assert(bufev_);
 
-  evbuffer *buf = bufferevent_get_input(bufev_);
-  if (evbuffer_get_length(buf) > 0) {
-    state_ = DKCON_READING; 
-    ReadHandler();
-    return true; 
-  }
-
-  /* Set up an event to read data */
+    /* Set up an event to read data */
 	bufferevent_disable(bufev_, EV_WRITE);
 	bufferevent_enable(bufev_, EV_READ);
 	state_ = DKCON_READING;
@@ -87,7 +80,12 @@ bool DonkeyBaseConnection::StartRead() {
       EventWriteCb,
       EventErrorCb,
 	    this);  
-  
+ 
+  evbuffer *buf = bufferevent_get_input(bufev_);
+  if (evbuffer_get_length(buf) > 0) {
+    ReadHandler();
+  }
+
   return true;
 }
 

@@ -82,7 +82,9 @@ bool DonkeyServer::MakeConnection(int fd,
     return false;
   }
 
-  conn->server_ = this;  
+  conn->server_ = this;
+
+  ConnectionMade(conn);
 
   conn->ConnectMade();
 

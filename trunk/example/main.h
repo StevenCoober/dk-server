@@ -4,12 +4,12 @@
 
 #define PORT 50001
 
-#define HTTP_HOST "192.168.3.182"
-#define HTTP_PORT 8085
-#define HTTP_POST_DATA "I'm ucim_server"
+#define HTTP_HOST "www.example.com"
+#define HTTP_PORT 80
+#define HTTP_POST_DATA "I'm donkey_server"
 
-#define BACK_HOST "192.168.3.182"
-#define BACK_PORT 40017
+#define BACK_HOST "www.example.com"
+#define BACK_PORT 80
 
 #define dlog1(args...) fprintf(stdout, args) 
 
