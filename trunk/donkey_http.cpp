@@ -14,24 +14,14 @@ bool DonkeyHttpClient::Init(
   if (!evbase || !host || port == 0)
     return false;
   
-  struct hostent hent, *ent;
-  char buf[2048];
-  int err;
-  struct in_addr addr;
-  const char *ip = host;
-    
-  if (gethostbyname_r(host, &hent, buf, sizeof(buf), &ent, &err) ||
-    ent == NULL) {
-    DK_DEBUG("[error] %s: gethostbyname_r %s\n", __func__, host); 
-  }
+  string ip;
 
-  for (int i = 0; ent->h_addr_list[i]; ++i) {
-    memcpy(&addr, ent->h_addr_list[i], ent->h_length);
-    ip = inet_ntoa(addr);
-    break;
-  }
+  /* Libevent evget_addrinfo has a bug */
+  DonkeyGetHostByName(host, ip);
+  if (ip.empty())
+    ip = host;
 
-  http_conn_ = evhttp_connection_base_new(evbase, NULL, ip, port);
+  http_conn_ = evhttp_connection_base_new(evbase, NULL, ip.c_str(), port);
   if (!http_conn_)
     return false;
   

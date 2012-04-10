@@ -4,6 +4,7 @@
  */
 
 #include "donkey_core.h"
+#include "donkey_util.h"
 
 DonkeyBaseConnection::DonkeyBaseConnection()
     : inited_(false), 
@@ -340,8 +341,15 @@ bool DonkeyBaseConnection::Connect() {
 
   bufferevent_enable(bufev_, EV_WRITE);
 
+  string ip;
+
+  /* Libevent evget_addrinfo has a bug */
+  DonkeyGetHostByName(host_, ip);
+  if (ip.empty())
+    ip = host_;
+
   int res = bufferevent_socket_connect_hostname(bufev_,
-      NULL, AF_INET, host_.c_str(), port_);
+      NULL, AF_INET, ip.c_str(), port_);
   
   if (res < 0) {
     DK_DEBUG("[error] %s: bufferevent_socket_connect_hostname return %d\n",
