@@ -85,14 +85,9 @@ class SrvConnection: public DonkeyBaseConnection {
         return;
       }
     }
-  
+ 
     ps_conn_->set_keep_alive(true);
-    ps_conn_->AddOutputBuffer("GET / HTTP/1.1\r\nConnection: keep-alive\r\n\r\n");
-    
-    if (!ps_conn_->IsConnected())
-      ps_conn_->Connect();
-    else
-      ps_conn_->StartWrite();
+    ps_conn_->Send("GET / HTTP/1.1\r\nConnection: keep-alive\r\n\r\n");
   }
 
   bool VisitHttpServer() {
