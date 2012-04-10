@@ -45,8 +45,8 @@ class SrvConnection: public DonkeyBaseConnection {
     dlog1("SrvConnection %s\n", __func__);
 
     //visit back server http server
-    VisitTCPServer();
-    //VisitHttpServer();
+    //VisitTCPServer();
+    VisitHttpServer();
   }
 
   virtual enum READ_STATUS RecvData() {

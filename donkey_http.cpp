@@ -13,7 +13,10 @@ bool DonkeyHttpClient::Init(
 
   if (!evbase || !host || port == 0)
     return false;
-  
+
+  host_ = host;
+  port_ = port;
+
   string ip;
 
   /* Libevent evget_addrinfo has a bug */
