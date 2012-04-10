@@ -8,6 +8,7 @@
 
 #include "donkey_common.h"
 #include "donkey_internal.h"
+#include "donkey_util.h"
 
 struct event_base;
 
@@ -212,7 +213,6 @@ protected:
   DonkeyConnectionState    state_;
   DonkeyConnectionKind     kind_;
   DonkeyConnectionError    error_;
-
 };
 
 #endif

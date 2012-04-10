@@ -20,7 +20,9 @@ class MyHttpClient: public DonkeyHttpClient {
 class PSConnection: public DonkeyBaseConnection {
   virtual enum READ_STATUS RecvData() {
     char *resp = (char *)evbuffer_pullup(get_input_buffer(), -1);
+    dlog1(">>>>>>>>>>>>>>\n");
     dlog1("PSConnection::%s: %s\n", __func__, resp);
+    dlog1("<<<<<<<<<<<<<<\n");
     evbuffer_drain(get_input_buffer(), -1); 
   }
 };
@@ -43,7 +45,7 @@ class SrvConnection: public DonkeyBaseConnection {
     dlog1("SrvConnection %s\n", __func__);
 
     //visit back server http server
-    //SendToBackServer();
+    VisitTCPServer();
     //VisitHttpServer();
   }
 
@@ -65,8 +67,8 @@ class SrvConnection: public DonkeyBaseConnection {
     return READ_ALL_DATA;
   }
 
-  void SendToBackServer() {
-    dlog1("SendToBackServer\n");
+  void VisitTCPServer() {
+    dlog1("VisitTCPServer\n");
 
     if (!ps_conn_) {
       ps_conn_ = new PSConnection();
