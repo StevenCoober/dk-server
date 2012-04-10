@@ -35,7 +35,7 @@ bool DonkeyBaseConnection::Init(struct event_base *base,
   if (inited_)
     return true;
 
-  if (!base || !host)
+  if (!base)
     return false;
 
   fd_ = fd;

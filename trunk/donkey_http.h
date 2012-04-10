@@ -32,7 +32,7 @@ public:
       key, value);  
   }
   
-  bool AddPostData(struct evhttp_request *req, void *data, size_t len) {
+  bool AddPostData(struct evhttp_request *req, const void *data, size_t len) {
     return 0 == evbuffer_add(evhttp_request_get_output_buffer(req), data, len); 
   }
 
@@ -67,8 +67,10 @@ public:
 private:
   static void EventHttpRequestCb(struct evhttp_request *req, void *arg);
 
-private:
+protected:
   struct evhttp_connection *http_conn_;
+  string              host_;
+  unsigned short            port_;
 };
 
 #endif
