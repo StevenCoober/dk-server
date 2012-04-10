@@ -63,9 +63,11 @@ public:
   void DebugRequest(struct evhttp_request *req);
 
   virtual void HandleResponse(struct evhttp_request *req);
+  virtual void CloseCallback() {}
 
 private:
   static void EventHttpRequestCb(struct evhttp_request *req, void *arg);
+  static void EventHttpCloseCb(struct evhttp_connection *conn, void *arg);
 
 protected:
   struct evhttp_connection *http_conn_;

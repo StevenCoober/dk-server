@@ -50,6 +50,42 @@ public:
     bufferevent_disable(bufev_, EV_WRITE);  
   }
 
+  bool Send(struct evbuffer *buf) {
+    if (!IsConnected()) {
+      if (!Connect())
+        return false;
+    }
+    
+    AddOutputBuffer(buf);
+    if (IsConnected())
+      return StartWrite();
+    return true;
+  }
+
+  bool Send(const string &buf) {
+    if (!IsConnected()) {
+      if (!Connect())
+        return false;
+    }
+    
+    AddOutputBuffer(buf);
+    if (IsConnected())
+      return StartWrite();
+    return true;
+  }
+
+  bool Send(const void *buf, int len) {
+    if (!IsConnected()) {
+      if (!Connect())
+        return false;
+    }
+    
+    AddOutputBuffer(buf, len);
+    if (IsConnected())
+      return StartWrite();
+    return true;
+  }
+
   void AddOutputBuffer(struct evbuffer *buf) {
     assert(buf);
     assert(bufev_);
@@ -65,7 +101,6 @@ public:
     assert(bufev_);
     evbuffer_add(get_output_buffer(), data, len); 
   }
-
 
   bool IsConnected() {
     switch (state_) {

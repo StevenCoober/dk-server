@@ -27,7 +27,9 @@ bool DonkeyHttpClient::Init(
   http_conn_ = evhttp_connection_base_new(evbase, NULL, ip.c_str(), port);
   if (!http_conn_)
     return false;
-  
+
+  evhttp_connection_set_closecb(http_conn_, EventHttpCloseCb, this);
+
   return true;
 }
 
@@ -45,6 +47,13 @@ void DonkeyHttpClient::EventHttpRequestCb(
   
   if (http_client)
     http_client->HandleResponse(req);
+}
+
+void DonkeyHttpClient::EventHttpCloseCb(struct evhttp_connection *conn, void *arg) {
+  DonkeyHttpClient *http_client = (DonkeyHttpClient *)arg;
+  
+  if (http_client) 
+    http_client->CloseCallback();
 }
 
 

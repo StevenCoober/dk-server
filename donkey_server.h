@@ -20,7 +20,7 @@ class DonkeyBaseConnection;
 class DonkeyServer {
 public:
   DonkeyServer(); 
-  ~DonkeyServer();
+  virtual ~DonkeyServer();
 
   bool Init();
 

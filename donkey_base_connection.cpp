@@ -241,6 +241,8 @@ void DonkeyBaseConnection::EventErrorCb(struct bufferevent *bufev,
     DK_DEBUG("[error] %s: %s for %s:%d on %d\n", __func__, StrError(error),
         conn->get_host().c_str(), conn->get_port(), conn->get_fd());
     conn->Fail(error);
+  } else {
+    conn->Fail(DKCON_ERROR_ERRNO);
   }
 }
 
@@ -267,7 +269,7 @@ void DonkeyBaseConnection::EventConnectCb(struct bufferevent *bufev,
   }
 
   if (error) {
-    DK_DEBUG("[error] %s: %s %s:%d on %d\n", strerror(errno),
+    DK_DEBUG("[error] %s: %s %s:%d on %d\n", __func__, strerror(errno),
         conn->get_host().c_str(), conn->get_port(), conn->get_fd());
     goto cleanup;
   }
@@ -282,6 +284,7 @@ cleanup:
 void DonkeyBaseConnection::Fail(DonkeyConnectionError error) {
   error_ = error;
 
+  bufferevent_disable(bufev_, EV_READ|EV_WRITE);
   ErrorCallback();
   Reset();
   
@@ -311,11 +314,13 @@ void DonkeyBaseConnection::Reset() {
     fd_ = -1;
   }
 
-  struct evbuffer *tmp = bufferevent_get_output(bufev_);
+  struct evbuffer *tmp = get_input_buffer();
 	evbuffer_drain(tmp, evbuffer_get_length(tmp));
-	tmp = bufferevent_get_input(bufev_);
-	evbuffer_drain(tmp, evbuffer_get_length(tmp));
-  
+	tmp = get_output_buffer();
+  evbuffer_unfreeze(tmp, 1);	
+  evbuffer_drain(tmp, evbuffer_get_length(tmp));
+  evbuffer_freeze(tmp, 1);
+
   inited_ = false;
 	state_ = DKCON_DISCONNECTED;
 }
