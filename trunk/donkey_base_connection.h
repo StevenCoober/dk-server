@@ -51,38 +51,42 @@ public:
   }
 
   bool Send(struct evbuffer *buf) {
-    if (!IsConnected()) {
-      if (!Connect())
-        return false;
-    }
-    
-    AddOutputBuffer(buf);
-    if (IsConnected())
+    if (kind_ == CON_OUTGOING) {
+      if (!IsConnected()) {
+        if (!Connect())
+          return false;
+      }
+
+      AddOutputBuffer(buf);
+      if (IsConnected())
+        return StartWrite();
+    } else {
+      AddOutputBuffer(buf);
       return StartWrite();
+    }
+
     return true;
   }
 
   bool Send(const string &buf) {
-    if (!IsConnected()) {
-      if (!Connect())
-        return false;
-    }
-    
-    AddOutputBuffer(buf);
-    if (IsConnected())
-      return StartWrite();
-    return true;
+    return Send(buf.data(), buf.size());
   }
 
   bool Send(const void *buf, int len) {
-    if (!IsConnected()) {
-      if (!Connect())
-        return false;
-    }
-    
-    AddOutputBuffer(buf, len);
-    if (IsConnected())
+    if (kind_ == CON_OUTGOING) {
+      if (!IsConnected()) {
+        if (!Connect())
+          return false;
+      }
+
+      AddOutputBuffer(buf, len);
+      if (IsConnected())
+        return StartWrite();
+    } else {
+      AddOutputBuffer(buf, len);
       return StartWrite();
+    }
+
     return true;
   }
 
