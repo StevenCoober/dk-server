@@ -66,7 +66,7 @@ void DonkeyHttpClient::DebugResponse(struct evhttp_request *req) {
   struct evkeyvalq    *headers;
   struct evbuffer     *input_buffer;
   const char *         value; 
-  int                  content_length;
+  int                  content_length = -1;
   string               s_headers = "headers:\n";
   string               body;
  

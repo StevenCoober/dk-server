@@ -11,5 +11,6 @@
 #include "donkey_base_connection.h"
 #include "donkey_log.h"
 #include "donkey_http.h"
+#include "donkey_internal.h"
 
 #endif

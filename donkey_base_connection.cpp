@@ -29,14 +29,17 @@ void DonkeyBaseConnection::Destruct() {
 }
 
 bool DonkeyBaseConnection::Init(struct event_base *base,
-                            int fd,
-                            const char *host,
-                            unsigned short port) {
+                                int fd,
+                                const char *host,
+                                unsigned short port) {
   if (inited_)
     return true;
 
   if (!base)
     return false;
+
+  if (fd == -1)
+    kind_ = CON_OUTGOING;
 
   fd_ = fd;
   base_ = base;
@@ -52,10 +55,10 @@ bool DonkeyBaseConnection::Init(struct event_base *base,
                       this);
   } else {
     bufev_ = bufferevent_new(fd_,
-                              EventReadCb,
-                              EventWriteCb,
-                              EventErrorCb,
-                              (void *)this);
+                             EventReadCb,
+                             EventWriteCb,
+                             EventErrorCb,
+                             (void *)this);
   }
 
   if (!bufev_)
