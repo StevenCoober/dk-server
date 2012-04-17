@@ -299,6 +299,7 @@ void DonkeyBaseConnection::Fail(DonkeyConnectionError error) {
 
 void DonkeyBaseConnection::ConnectFail(DonkeyConnectionError error) {
   error_ = error;
+  ErrorCallback();
   Reset();
 }
 
@@ -309,7 +310,7 @@ void DonkeyBaseConnection::Reset() {
   bufferevent_disable(bufev_, EV_READ|EV_WRITE);
 
   if (fd_ != -1) {
-    if (IsConnected())
+    //if (IsConnected())
       CloseCallback();
 
     shutdown(fd_, SHUT_WR);
