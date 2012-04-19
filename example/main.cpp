@@ -8,6 +8,9 @@
 #include "donkey_common.h"
 #include "main.h"
 
+#undef dlog1
+#define dlog1
+
 using namespace std;
 
 class MyHttpClient: public DonkeyHttpClient {
@@ -46,11 +49,12 @@ class SrvConnection: public DonkeyBaseConnection {
 
     //visit back server http server
     //VisitTCPServer();
-    VisitHttpServer();
+    //VisitHttpServer();
   }
 
   virtual enum READ_STATUS RecvData() {
     struct evbuffer *buf = get_input_buffer();
+    /* 
     size_t rbuf_size = evbuffer_get_length(buf);
     size_t total_size = 8;
 
@@ -58,12 +62,16 @@ class SrvConnection: public DonkeyBaseConnection {
       dlog1("READ_NEED_MORE_DATA\n");
       return READ_NEED_MORE_DATA;
     }
+    */
 
-    AddOutputBuffer("Welcom to donkey-server!\n");
+    /* reply what you send */
+    AddOutputBuffer(buf); /* buf will be drained hear */
     StartWrite();
+    
+    /* not keep alive, buf already drained in AddOutputBuffer 
     set_keep_alive(true);
-
     evbuffer_drain(buf, total_size);
+    */
     return READ_ALL_DATA;
   }
 
