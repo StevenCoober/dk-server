@@ -19,7 +19,11 @@ public:
   }
 
   bool Init(struct event_base *evbase, const char *host, unsigned short port); 
- 
+
+  struct evhttp_connection *get_http_conn() {
+    return http_conn_;
+  }
+
   /* auto free after response by libevent */
   struct evhttp_request *NewRequest() {
     return evhttp_request_new(EventHttpRequestCb, (void *)this);  
@@ -71,7 +75,7 @@ private:
 
 protected:
   struct evhttp_connection *http_conn_;
-  string              host_;
+  string                    host_;
   unsigned short            port_;
 };
 
