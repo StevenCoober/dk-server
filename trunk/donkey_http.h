@@ -24,6 +24,11 @@ public:
     return http_conn_;
   }
 
+  void SetTimeout(int timeout_in_secs) {
+    if (http_conn_)
+      evhttp_connection_set_timeout(http_conn_, timeout_in_secs);
+  }
+
   /* auto free after response by libevent */
   struct evhttp_request *NewRequest() {
     return evhttp_request_new(EventHttpRequestCb, (void *)this);  
