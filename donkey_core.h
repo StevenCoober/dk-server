@@ -12,5 +12,8 @@
 #include "donkey_log.h"
 #include "donkey_http.h"
 #include "donkey_internal.h"
+#include "donkey_worker.h"
+#include "donkey_base_thread.h"
+
 
 #endif

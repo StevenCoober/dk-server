@@ -144,10 +144,17 @@ class MyServer: public DonkeyServer {
   }
 };
 
+void echo_hello(void *arg) {
+  MyServer *server = (MyServer *)arg; 
+
+  cout << "hello\n";
+}
+
 int main(int argc, char **argv) {
   MyServer *server = new MyServer();
-  
-  if (!server || !server->Init()) {
+  DonkeyWorker worker = DonkeyWorker();  
+
+  if (!worker.Init() || !server || !server->Init()) {
     dlog1("new DonkeyServer Init error\n");
     return 1;
   }
@@ -159,6 +166,11 @@ int main(int argc, char **argv) {
 
   if (!server->StartListenTCP(NULL, PORT, 1024))
     return 1;
+
+  //start a worker thread
+  worker.Create();
+  for (int i = 0; i < 1000; i++)
+    worker.CallInThread(echo_hello, server);
   server->EventLoop();
 
   delete server;

@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
-
+#include <semaphore.h>
 /* stl */
 #include <deque>
 #include <vector>
