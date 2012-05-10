@@ -8,9 +8,9 @@
 unsigned int DonkeyServer::current_time_;
 
 DonkeyServer::DonkeyServer()
-    : listener_(NULL),
+    : base_(NULL),
+      listener_(NULL),
       signal_event_(NULL) {
-  base_ = event_base_new();
 }
 
 DonkeyServer::~DonkeyServer() {
@@ -23,6 +23,9 @@ DonkeyServer::~DonkeyServer() {
 }
 
 bool DonkeyServer::Init() {
+  base_ = event_base_new();
+  if (!base_)
+    return false;
   ClockHandler(0, 0, this);
   return true;
 }

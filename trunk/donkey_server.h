@@ -7,6 +7,7 @@
 #define __DONKEY_SERVER_INCLUDE__
 
 #include "donkey_common.h"
+#include "donkey_worker.h"
 
 using namespace std;
 
@@ -17,7 +18,7 @@ struct sockaddr_in;
 
 class DonkeyBaseConnection;
 
-class DonkeyServer {
+class DonkeyServer : public DonkeyWorker {
 public:
   DonkeyServer(); 
   virtual ~DonkeyServer();
