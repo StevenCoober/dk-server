@@ -9,7 +9,7 @@
 int DonkeyWorker::ThreadRoutine() {
   int ret = 0;
 
-  for ( ; ; ) {
+  for ( ; !stop_ ; ) {
   
     /* no events and pending cb */
     if (pending_cbs_.empty()) {
