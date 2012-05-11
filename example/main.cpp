@@ -8,8 +8,8 @@
 #include "donkey_common.h"
 #include "main.h"
 
-//#undef dlog1
-//#define dlog1
+#undef dlog1
+#define dlog1
 
 using namespace std;
 
@@ -17,6 +17,7 @@ class MyServer;
 
 static MyServer *server;
 static DonkeyWorker *worker;
+static DonkeyEventThread *ev_thread;
 
 class MyHttpRequest: public DonkeyHttpRequest {
   virtual void HandleResponse(struct evhttp_request *req) {
@@ -60,7 +61,7 @@ class SrvConnection: public DonkeyBaseConnection {
     dlog1("SrvConnection %s\n", __func__);
 
     //visit back server http server
-    VisitTCPServer();
+    //VisitTCPServer();
     //VisitHttpServer();
   }
 
@@ -81,7 +82,7 @@ class SrvConnection: public DonkeyBaseConnection {
     StartWrite();
    
     
-    set_keep_alive(true);
+    //set_keep_alive(true);
     /*  buf already drained in AddOutputBuffer 
     evbuffer_drain(buf, total_size);
     */
@@ -169,11 +170,17 @@ static void hello_in_workerthread(void *arg) {
     server->CallInThread(hello_in_mainthread, NULL);
 }
 
+static void hello_in_evthread(void *arg) {
+  cout << "hello, i'm in event thread id: " << pthread_self() << endl;
+}
+
 int main(int argc, char **argv) {
   server = new MyServer();
   worker = new DonkeyWorker();  
+  ev_thread = new DonkeyEventThread();
 
-  if (!worker || !worker->Init() || !server || !server->Init()) {
+  if (!worker || !worker->Init() || !server || !server->Init() ||
+      !ev_thread || !ev_thread->Init()) {
     dlog1("new DonkeyServer Init error\n");
     return 1;
   }
@@ -188,8 +195,13 @@ int main(int argc, char **argv) {
 
   //start a worker thread
   worker->Create();
-  for (int i = 0; i < 10; i++)
+  ev_thread->Create();
+  for (int i = 0; i < 10; i++) 
     worker->CallInThread(hello_in_workerthread, server);
+
+  for (int i = 0; i < 10; i++)
+    ev_thread->CallInThread(hello_in_evthread, server);
+
   server->EventLoop();
 
   delete server;

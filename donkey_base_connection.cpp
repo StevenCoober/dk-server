@@ -6,6 +6,8 @@
 #include "donkey_core.h"
 #include "donkey_util.h"
 
+int DonkeyBaseConnection::last_conn_id_;
+
 DonkeyBaseConnection::DonkeyBaseConnection()
     : inited_(false), 
       base_(NULL),
@@ -13,6 +15,7 @@ DonkeyBaseConnection::DonkeyBaseConnection()
       fd_(-1),
       keep_alive_(false),
       timeout_(-1), 
+      id_(-1),
       bufev_(NULL),
       state_(DKCON_DISCONNECTED),
       kind_(CON_INCOMING),
@@ -65,6 +68,10 @@ bool DonkeyBaseConnection::Init(struct event_base *base,
     return false;
 
   bufferevent_base_set(base_, bufev_);
+
+  id_ = ++last_conn_id_;
+  if (id_ == -1)
+    id_ = ++last_conn_id_;
  
   inited_ = true;
 
@@ -324,7 +331,7 @@ void DonkeyBaseConnection::Reset() {
   evbuffer_unfreeze(tmp, 1);	
   evbuffer_drain(tmp, evbuffer_get_length(tmp));
   evbuffer_freeze(tmp, 1);
-
+  
   inited_ = false;
 	state_ = DKCON_DISCONNECTED;
 }

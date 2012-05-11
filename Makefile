@@ -1,7 +1,7 @@
 OBJECTS=donkey_server.o donkey_base_connection.o donkey_http.o donkey_util.o \
 				donkey_base_thread.o donkey_thread.o donkey_worker.o
 
-CXXFLAGS=-g -O2 -Wall -D_DONKEY_DEBUG
+CXXFLAGS=-g -O2 -Wall #-D_DONKEY_DEBUG
 
 LIB_NAME=libdonkey_server.a
 
