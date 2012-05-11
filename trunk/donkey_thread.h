@@ -3,15 +3,15 @@
  * Copyright (C) lijian2@ucweb.com
  */
 
-#ifndef __DONKEY_WORKER__INCLUDE__
-#define __DONKEY_WORKER__INCLUDE__
+#ifndef __DONKEY_THREAD__INCLUDE__
+#define __DONKEY_THREAD__INCLUDE__
 
 #include "queue.h"
 #include "donkey_base_thread.h"
 
-class DonkeyWorker;
+class DonkeyThread;
 
-typedef void (*deferred_cb_fn)(DonkeyWorker *worker, void *arg);
+typedef void (*deferred_cb_fn)(DonkeyThread *worker, void *arg);
 
 class DeferredCb {
 public:
@@ -19,7 +19,7 @@ public:
       : cb_(cb), arg_(arg) {
   }
 
-  void Call(DonkeyWorker *worker) {
+  void Call(DonkeyThread *worker) {
     if (cb_)
       cb_(worker, arg_);
   }
@@ -29,14 +29,14 @@ private:
   void *arg_;
 };
 
-class DonkeyWorker : public DonkeyBaseThread {
+class DonkeyThread : public DonkeyBaseThread {
 public:
-  DonkeyWorker() : base_(NULL) {
+  DonkeyThread() : base_(NULL) {
   }
 
   bool Init();
 
-  virtual ~DonkeyWorker() {
+  virtual ~DonkeyThread() {
     if (base_)
       event_base_free(base_);
   }

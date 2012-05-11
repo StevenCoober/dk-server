@@ -4,9 +4,9 @@
  */
 
 #include "donkey_common.h"
-#include "donkey_worker.h"
+#include "donkey_thread.h"
 
-bool DonkeyWorker::Init() {
+bool DonkeyThread::Init() {
   base_ = event_base_new();
   if (!base_)
     return false;
@@ -30,18 +30,18 @@ bool DonkeyWorker::Init() {
   return true;
 }
 
-int DonkeyWorker::ThreadRoutine() {
+int DonkeyThread::ThreadRoutine() {
   return event_base_dispatch(base_);
 }
 
-void DonkeyWorker::EventNotifyCb(int fd, short which, void *arg) {
-  DonkeyWorker *worker = (DonkeyWorker *)arg;
+void DonkeyThread::EventNotifyCb(int fd, short which, void *arg) {
+  DonkeyThread *worker = (DonkeyThread *)arg;
   assert(worker);
   
   worker->NotifyCb(fd, which);
 }
 
-void DonkeyWorker::NotifyCb(int fd, short which) {
+void DonkeyThread::NotifyCb(int fd, short which) {
   assert(base_);
   char buf[1024];
 
