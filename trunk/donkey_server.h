@@ -18,7 +18,7 @@ struct sockaddr_in;
 
 class DonkeyBaseConnection;
 
-class DonkeyServer : public DonkeyThread {
+class DonkeyServer : public DonkeyEventThread {
 public:
   DonkeyServer(); 
   virtual ~DonkeyServer();

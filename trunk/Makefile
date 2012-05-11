@@ -1,4 +1,5 @@
-OBJECTS=donkey_server.o donkey_base_connection.o donkey_http.o donkey_util.o donkey_base_thread.o donkey_thread.o
+OBJECTS=donkey_server.o donkey_base_connection.o donkey_http.o donkey_util.o \
+				donkey_base_thread.o donkey_thread.o donkey_worker.o
 
 CXXFLAGS=-g -O2 -Wall -D_DONKEY_DEBUG
 
@@ -13,7 +14,7 @@ clean:
 	rm $(LIB_NAME) $(OBJECTS)
 
 SOURCES=donkey_server.cpp donkey_base_connection.cpp donkey_http.cpp donkey_util.cpp \
-				donkey_base_thread.cpp donkey_thread.cpp
+				donkey_base_thread.cpp donkey_thread.cpp donkey_worker.cpp
 
 include $(SOURCES:.cpp=.d)
 
