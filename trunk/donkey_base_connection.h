@@ -169,6 +169,10 @@ public:
     return StrError(error_);
   }
 
+  int get_id() {
+    return id_;
+  }
+
   int get_timeout() {
     return timeout_;
   }
@@ -247,11 +251,15 @@ protected:
   int                fd_;
   bool               keep_alive_; 
   int                timeout_;
+  int                id_;
 
   struct bufferevent      *bufev_;
   DonkeyConnectionState    state_;
   DonkeyConnectionKind     kind_;
   DonkeyConnectionError    error_;
+
+private:
+  static int last_conn_id_;  
 };
 
 #endif

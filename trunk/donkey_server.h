@@ -10,6 +10,7 @@
 #include "donkey_thread.h"
 
 using namespace std;
+using namespace __gnu_cxx;
 
 struct event_base;
 struct evconnlistener;
@@ -20,6 +21,7 @@ class DonkeyBaseConnection;
 
 class DonkeyServer : public DonkeyEventThread {
 public:
+  enum {FREE_CONNS = 200};
   DonkeyServer(); 
   virtual ~DonkeyServer();
 
@@ -34,6 +36,8 @@ public:
   bool MakeConnection(int fd, const char *host, unsigned short port);  
 
   void FreeConn(DonkeyBaseConnection *conn);
+
+  DonkeyBaseConnection *get_conn(int conn_id);
 
   /*
   struct event_base *get_base() {
@@ -71,6 +75,7 @@ private:
 	struct sockaddr_in             sin_;
   vector<DonkeyBaseConnection *> free_conns_;
   static unsigned int            current_time_;
+  hash_map<int, DonkeyBaseConnection *> conns_map_;
 };
 
 #endif

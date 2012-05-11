@@ -80,11 +80,23 @@ bool DonkeyServer::MakeConnection(int fd,
     return false;
   }
 
+  hash_map<int, DonkeyBaseConnection *>::iterator it = conns_map_.find(conn->get_id());
+  if (it != conns_map_.end() && it->second != NULL) {
+    DonkeyBaseConnection *old_conn = it->second;
+    DK_DEBUG("[error] %s: conn_id %d fd %d already exists in conns_map_\n",
+             __func__, old_conn->get_id(), old_conn->get_fd());
+    conn->Reset();
+    delete conn;
+    return false;
+  } else
+    conns_map_[conn->get_id()] = conn;
+
   conn->server_ = this;
 
   ConnectionMade(conn);
 
   conn->ConnectMade();
+  
 
   return conn->StartRead();
 }
@@ -144,7 +156,27 @@ void DonkeyServer::FreeConn(DonkeyBaseConnection *conn) {
   if (!conn)
     return;
 
-  free_conns_.push_back(conn); 
+ 
+  hash_map<int, DonkeyBaseConnection *>::iterator it = conns_map_.find(conn->get_id());
+
+  if (it == conns_map_.end()) {
+    DK_DEBUG("[error] %s: conn_id %d fd %d not exists in conns_map_\n",
+             __func__, conn->get_id(), conn->get_fd());
+  } else
+    conns_map_.erase(conn->get_id());
+
+  if (free_conns_.size() > FREE_CONNS)
+    delete conn;
+  else
+    free_conns_.push_back(conn);
+}
+
+DonkeyBaseConnection *DonkeyServer::get_conn(int conn_id) {
+  hash_map<int, DonkeyBaseConnection *>::iterator it = conns_map_.find(conn_id);
+  if (it != conns_map_.end())
+    return it->second;
+  else
+    return NULL;
 }
 
 DonkeyBaseConnection *DonkeyServer::NewConnection() {
