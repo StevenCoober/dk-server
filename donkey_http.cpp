@@ -6,60 +6,24 @@
 #include "donkey_core.h"
 using namespace std;
 
-bool DonkeyHttpClient::Init(
-    struct event_base *evbase, const char *host, unsigned short port) {
-  if (http_conn_)
-    return false;
 
-  if (!evbase || !host || port == 0)
-    return false;
+/*********** DonkeyHttpRequest ************/
 
-  host_ = host;
-  port_ = port;
-
-  string ip;
-
-  /* Libevent evget_addrinfo has a bug */
-  DonkeyGetHostByName(host, ip);
-  if (ip.empty())
-    ip = host;
-
-  http_conn_ = evhttp_connection_base_new(evbase, NULL, ip.c_str(), port);
-  if (!http_conn_)
-    return false;
-
-  evhttp_connection_set_closecb(http_conn_, EventHttpCloseCb, this);
-
-  return true;
+void DonkeyHttpRequest::HandleResponse(struct evhttp_request *req) {
+  DebugResponse(req);
+  delete this;
 }
 
-/*********** virtual ************/
-
-void DonkeyHttpClient::HandleResponse(struct evhttp_request *req) {
-  DebugResponse(req); 
-}
-
-/*********** static ************/
-
-void DonkeyHttpClient::EventHttpRequestCb(
+void DonkeyHttpRequest::EventHttpRequestCb(
     struct evhttp_request *req, void *arg) {
-  DonkeyHttpClient *http_client = (DonkeyHttpClient *)arg;
+  DonkeyHttpRequest *http_req = (DonkeyHttpRequest *)arg;
   
-  if (http_client)
-    http_client->HandleResponse(req);
+  if (http_req) {
+    http_req->HandleResponse(req);
+  }
 }
 
-void DonkeyHttpClient::EventHttpCloseCb(struct evhttp_connection *conn, void *arg) {
-  DonkeyHttpClient *http_client = (DonkeyHttpClient *)arg;
-  
-  if (http_client) 
-    http_client->CloseCallback();
-}
-
-
-/*********** debug function ***********/
-
-void DonkeyHttpClient::DebugResponse(struct evhttp_request *req) {
+void DonkeyHttpRequest::DebugResponse(struct evhttp_request *req) {
   if (!req)
     return;
   
@@ -91,7 +55,7 @@ void DonkeyHttpClient::DebugResponse(struct evhttp_request *req) {
   DK_DEBUG("<<<<<<<<<<<\n"); 
 }
 
-void DonkeyHttpClient::DebugRequest(struct evhttp_request *req) {
+void DonkeyHttpRequest::DebugRequest(struct evhttp_request *req) {
   if (!req)
     return; 
   struct evkeyvalq *headers = evhttp_request_get_output_headers(req);
@@ -100,7 +64,7 @@ void DonkeyHttpClient::DebugRequest(struct evhttp_request *req) {
   DK_DEBUG("<<<<<<<<<<<\n");
 }
 
-void DonkeyHttpClient::DebugHeaders(struct evkeyvalq *headers) {
+void DonkeyHttpRequest::DebugHeaders(struct evkeyvalq *headers) {
   struct evkeyval *header;
   string s_headers = "Http headers:\n";
   
@@ -117,4 +81,42 @@ void DonkeyHttpClient::DebugHeaders(struct evkeyvalq *headers) {
   
   DK_DEBUG("%.*s\n", s_headers.size(), s_headers.data());
 }
+
+
+/*********** DonkeyHttpClient ************/
+
+bool DonkeyHttpClient::Init(
+    struct event_base *evbase, const char *host, unsigned short port) {
+  if (http_conn_)
+    return false;
+
+  if (!evbase || !host || port == 0)
+    return false;
+
+  host_ = host;
+  port_ = port;
+
+  string ip;
+
+  /* Libevent evget_addrinfo has a bug */
+  DonkeyGetHostByName(host, ip);
+  if (ip.empty())
+    ip = host;
+
+  http_conn_ = evhttp_connection_base_new(evbase, NULL, ip.c_str(), port);
+  if (!http_conn_)
+    return false;
+
+  evhttp_connection_set_closecb(http_conn_, EventHttpCloseCb, this);
+
+  return true;
+}
+
+void DonkeyHttpClient::EventHttpCloseCb(struct evhttp_connection *conn, void *arg) {
+  DonkeyHttpClient *http_client = (DonkeyHttpClient *)arg;
+  
+  if (http_client) 
+    http_client->CloseCallback();
+}
+
 

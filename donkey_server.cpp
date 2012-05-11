@@ -8,14 +8,11 @@
 unsigned int DonkeyServer::current_time_;
 
 DonkeyServer::DonkeyServer()
-    : base_(NULL),
-      listener_(NULL),
+    : listener_(NULL),
       signal_event_(NULL) {
 }
 
 DonkeyServer::~DonkeyServer() {
-  if (base_)
-    event_base_free(base_);
   if (listener_)
     evconnlistener_free(listener_);
   if (signal_event_)
@@ -23,9 +20,7 @@ DonkeyServer::~DonkeyServer() {
 }
 
 bool DonkeyServer::Init() {
-  base_ = event_base_new();
-  if (!base_)
-    return false;
+  DonkeyWorker::Init();
   ClockHandler(0, 0, this);
   return true;
 }
@@ -58,7 +53,7 @@ bool DonkeyServer::StartListenTCP(const char *address,
 }
 
 int DonkeyServer::EventLoop() {
-  return event_base_dispatch(base_);
+  return ThreadRoutine();
 }
 
 bool DonkeyServer::MakeConnection(int fd,
@@ -121,6 +116,8 @@ void DonkeyServer::ClockHandler(int fd, short which, void *arg) {
    
   struct timeval t;
   DonkeyServer *server = (DonkeyServer *)arg;
+  assert(server);
+  assert(server->get_base());
 
   if (initialized) {
     /* only delete the event if it's actually there. */
@@ -143,7 +140,7 @@ void DonkeyServer::ClockHandler(int fd, short which, void *arg) {
   evtimer_add(&clockevent, &t);
 }
 
-void DonkeyServer::AddFreeConn(DonkeyBaseConnection *conn) {
+void DonkeyServer::FreeConn(DonkeyBaseConnection *conn) {
   if (!conn)
     return;
 

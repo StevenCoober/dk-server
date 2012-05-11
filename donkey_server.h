@@ -33,12 +33,13 @@ public:
 
   bool MakeConnection(int fd, const char *host, unsigned short port);  
 
-  void AddFreeConn(DonkeyBaseConnection *conn);
+  void FreeConn(DonkeyBaseConnection *conn);
 
-
+  /*
   struct event_base *get_base() {
     return base_; 
   }
+  */
 
   unsigned int get_current_time() {
     return current_time_;
@@ -63,7 +64,7 @@ private:
   static void ClockHandler(int fd, short which, void *arg);
 
 private:
-  struct event_base             *base_;
+  /*struct event_base             *base_;*/
 	struct evconnlistener         *listener_;
 	struct event                  *signal_event_;
 

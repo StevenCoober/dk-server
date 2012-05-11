@@ -11,7 +11,7 @@
 class DonkeyBaseThread {
 
 public:
-  DonkeyBaseThread() {
+  DonkeyBaseThread() : thread_id_(0) {
   }
 
   virtual ~DonkeyBaseThread() {
