@@ -3,40 +3,21 @@
  * Copyright (C) lijian2@ucweb.com
  */
 
-#ifndef __DONKEY_THREAD__INCLUDE__
-#define __DONKEY_THREAD__INCLUDE__
+#ifndef __DONKEY_EVENT_THREAD__INCLUDE__
+#define __DONKEY_EVENT_THREAD__INCLUDE__
 
 #include "queue.h"
 #include "donkey_base_thread.h"
+#include "donkey_internal.h"
 
-class DonkeyThread;
-
-typedef void (*deferred_cb_fn)(DonkeyThread *worker, void *arg);
-
-class DeferredCb {
+class DonkeyEventThread : public DonkeyBaseThread {
 public:
-  DeferredCb(deferred_cb_fn cb, void *arg)
-      : cb_(cb), arg_(arg) {
-  }
-
-  void Call(DonkeyThread *worker) {
-    if (cb_)
-      cb_(worker, arg_);
-  }
-
-private:
-  deferred_cb_fn cb_;
-  void *arg_;
-};
-
-class DonkeyThread : public DonkeyBaseThread {
-public:
-  DonkeyThread() : base_(NULL) {
+  DonkeyEventThread() : base_(NULL) {
   }
 
   bool Init();
 
-  virtual ~DonkeyThread() {
+  virtual ~DonkeyEventThread() {
     if (base_)
       event_base_free(base_);
   }

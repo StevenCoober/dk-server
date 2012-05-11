@@ -40,4 +40,23 @@ enum DonkeyConnectionError {
   DKCON_ERROR_PARSE_ERROR
 };
 
+typedef void (*deferred_cb_fn)(void *arg);
+
+class DeferredCb {
+public:
+  DeferredCb(deferred_cb_fn cb, void *arg)
+      : cb_(cb), arg_(arg) {
+  }
+
+  void Call() {
+    if (cb_)
+      cb_(arg_);
+  }
+
+private:
+  deferred_cb_fn cb_;
+  void *arg_;
+};
+
+
 #endif

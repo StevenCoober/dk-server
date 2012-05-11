@@ -16,7 +16,7 @@ using namespace std;
 class MyServer;
 
 static MyServer *server;
-static DonkeyThread *worker;
+static DonkeyWorker *worker;
 
 class MyHttpRequest: public DonkeyHttpRequest {
   virtual void HandleResponse(struct evhttp_request *req) {
@@ -26,13 +26,19 @@ class MyHttpRequest: public DonkeyHttpRequest {
   }
 };
 
+
 class PSConnection: public DonkeyBaseConnection {
+  static void DoInWorkerThread(void *arg) {
+    dlog1("PSConnection::%s\n", __func__);
+  }
+
   virtual enum READ_STATUS RecvData() {
     char *resp = (char *)evbuffer_pullup(get_input_buffer(), -1);
     dlog1(">>>>>>>>>>>>>>\n");
     dlog1("PSConnection::%s: %s\n", __func__, resp);
     dlog1("<<<<<<<<<<<<<<\n");
     evbuffer_drain(get_input_buffer(), -1); 
+    worker->CallInThread(DoInWorkerThread, this);
   }
 };
 
@@ -151,21 +157,21 @@ class MyServer: public DonkeyServer {
   }
 };
 
-static void hello_in_mainthread(DonkeyThread *curr_th, void *arg) {
-  cout << "hello, i'm in main thread id: " << curr_th->get_thread_id() << endl;
+static void hello_in_mainthread(void *arg) {
+  cout << "hello, i'm in main thread id: " << pthread_self() << endl;
 }
 
-static void hello_in_workerthread(DonkeyThread *curr_th, void *arg) {
+static void hello_in_workerthread(void *arg) {
   MyServer *server = (MyServer *)arg; 
 
-  cout << "hello, i'm in worker thread id: " << curr_th->get_thread_id() << endl;
+  cout << "hello, i'm in worker thread id: " << pthread_self() << endl;
   if (server)
     server->CallInThread(hello_in_mainthread, NULL);
 }
 
 int main(int argc, char **argv) {
   server = new MyServer();
-  worker = new DonkeyThread();  
+  worker = new DonkeyWorker();  
 
   if (!worker || !worker->Init() || !server || !server->Init()) {
     dlog1("new DonkeyServer Init error\n");

@@ -6,7 +6,7 @@
 #include "donkey_common.h"
 #include "donkey_thread.h"
 
-bool DonkeyThread::Init() {
+bool DonkeyEventThread::Init() {
   base_ = event_base_new();
   if (!base_)
     return false;
@@ -30,18 +30,18 @@ bool DonkeyThread::Init() {
   return true;
 }
 
-int DonkeyThread::ThreadRoutine() {
+int DonkeyEventThread::ThreadRoutine() {
   return event_base_dispatch(base_);
 }
 
-void DonkeyThread::EventNotifyCb(int fd, short which, void *arg) {
-  DonkeyThread *worker = (DonkeyThread *)arg;
+void DonkeyEventThread::EventNotifyCb(int fd, short which, void *arg) {
+  DonkeyEventThread *worker = (DonkeyEventThread *)arg;
   assert(worker);
   
   worker->NotifyCb(fd, which);
 }
 
-void DonkeyThread::NotifyCb(int fd, short which) {
+void DonkeyEventThread::NotifyCb(int fd, short which) {
   assert(base_);
   char buf[1024];
 
@@ -51,7 +51,7 @@ void DonkeyThread::NotifyCb(int fd, short which) {
   for ( ; !pending_cbs_.empty(); ) {
     try {
       DeferredCb deferred_cb = pending_cbs_.pop();  
-      deferred_cb.Call(this);
+      deferred_cb.Call();
     } catch (const std::exception e) {
       break;
     }
