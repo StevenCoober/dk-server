@@ -8,6 +8,50 @@
 
 #include "donkey_common.h"
 
+class DonkeyHttpClient;
+
+class DonkeyHttpRequest {
+public:
+  DonkeyHttpRequest() : http_req_(NULL) {
+  }
+
+  virtual ~DonkeyHttpRequest() {
+  }
+
+  bool Init() {
+    http_req_ = evhttp_request_new(EventHttpRequestCb, (void *)this);
+    return http_req_ != NULL; 
+  }
+
+  bool AddHeader(const char *key,
+                 const char *value) {
+    assert(http_req_);
+    return 0 == evhttp_add_header(evhttp_request_get_output_headers(http_req_),
+      key, value);  
+  }
+  
+  bool AddPostData(const void *data, size_t len) {
+    assert(http_req_);
+    return 0 == evbuffer_add(evhttp_request_get_output_buffer(http_req_), data, len); 
+  }
+
+  struct evhttp_request *get_http_req() {
+    return http_req_;
+  }
+
+  virtual void HandleResponse(struct evhttp_request *req);
+  
+  void DebugResponse(struct evhttp_request *req);
+  void DebugHeaders(struct evkeyvalq *headers);
+  void DebugRequest(struct evhttp_request *req);
+
+private:
+  static void EventHttpRequestCb(struct evhttp_request *req, void *arg);
+
+protected:
+  struct evhttp_request *http_req_;
+};
+
 class DonkeyHttpClient {
 public: 
   DonkeyHttpClient() : http_conn_(NULL) {
@@ -20,6 +64,16 @@ public:
 
   bool Init(struct event_base *evbase, const char *host, unsigned short port); 
 
+  DonkeyHttpRequest *NewRequest() {
+    DonkeyHttpRequest *req = new DonkeyHttpRequest();
+    if (req && !req->Init()) {
+      delete req;
+      req = NULL;
+    }
+
+    return req;
+  }
+
   struct evhttp_connection *get_http_conn() {
     return http_conn_;
   }
@@ -29,20 +83,9 @@ public:
       evhttp_connection_set_timeout(http_conn_, timeout_in_secs);
   }
 
-  /* auto free after response by libevent */
-  struct evhttp_request *NewRequest() {
-    return evhttp_request_new(EventHttpRequestCb, (void *)this);  
-  }
-  
-  bool AddHeader(struct evhttp_request *req,
-                 const char *key,
-                 const char *value) {
-    return 0 == evhttp_add_header(evhttp_request_get_output_headers(req),
-      key, value);  
-  }
-  
-  bool AddPostData(struct evhttp_request *req, const void *data, size_t len) {
-    return 0 == evbuffer_add(evhttp_request_get_output_buffer(req), data, len); 
+  void SetRetries(int retries) {
+    if (http_conn_)
+      evhttp_connection_set_retries(http_conn_, retries);
   }
 
   /* defined in <event2/http.h>
@@ -57,25 +100,22 @@ public:
         EVHTTP_REQ_CONNECT = 1 << 7,
         EVHTTP_REQ_PATCH   = 1 << 8
     };
+    
+    dk_http_req will be auto free after response
   */
-  bool SendRequest(struct evhttp_request *req,
+  bool SendRequest(DonkeyHttpRequest *dk_http_req,
                   enum evhttp_cmd_type cmd_type,
                   const char *uri) {
-    if (!http_conn_ || !req || !uri)
+    if (!http_conn_ || !dk_http_req || !uri)
       return false;
     
-    return 0 == evhttp_make_request(http_conn_, req, cmd_type, uri);
+    return 0 == evhttp_make_request(
+        http_conn_, dk_http_req->get_http_req(), cmd_type, uri);
   }
 
-  void DebugResponse(struct evhttp_request *req);
-  void DebugHeaders(struct evkeyvalq *headers);
-  void DebugRequest(struct evhttp_request *req);
-
-  virtual void HandleResponse(struct evhttp_request *req);
   virtual void CloseCallback() {}
 
 private:
-  static void EventHttpRequestCb(struct evhttp_request *req, void *arg);
   static void EventHttpCloseCb(struct evhttp_connection *conn, void *arg);
 
 protected:

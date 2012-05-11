@@ -9,7 +9,9 @@
 #include "queue.h"
 #include "donkey_base_thread.h"
 
-typedef void (*deferred_cb_fn)(void *arg);
+class DonkeyWorker;
+
+typedef void (*deferred_cb_fn)(DonkeyWorker *worker, void *arg);
 
 class DeferredCb {
 public:
@@ -17,9 +19,9 @@ public:
       : cb_(cb), arg_(arg) {
   }
 
-  void Call() {
+  void Call(DonkeyWorker *worker) {
     if (cb_)
-      cb_(arg_);
+      cb_(worker, arg_);
   }
 
 private:
@@ -32,13 +34,7 @@ public:
   DonkeyWorker() : base_(NULL) {
   }
 
-  bool Init() {
-    base_ = event_base_new();
-    if (!base_)
-      return false;
-    
-    return 0 == sem_init(&event_sem_, 0, 0); 
-  }
+  bool Init();
 
   virtual ~DonkeyWorker() {
     if (base_)
@@ -55,16 +51,31 @@ public:
     return base_; 
   }
 
-  virtual int ThreadRoutine();
-
   bool CallInThread(deferred_cb_fn cb, void *arg) {
     pending_cbs_.push(DeferredCb(cb, arg));
-    return 0 == sem_post(&event_sem_);
+    return Notify();
+  }
+
+  virtual int ThreadRoutine();
+
+  void NotifyCb(int fd, short which); 
+
+  static void EventNotifyCb(int fd, short which, void *arg);
+
+
+  bool Notify() {
+    int rv, cnt = 0;
+    do {
+      rv = write(notify_send_fd_, "", 1);
+    } while (rv < 0 && errno == EAGAIN && ++cnt < 100);
+    return rv > 0;
   }
 
 protected:
   struct event_base     *base_;
-  sem_t                  event_sem_;
+  struct event           notify_event_;
+  int                    notify_receive_fd_;
+  int                    notify_send_fd_;
   LockQueue<DeferredCb>  pending_cbs_;
 };
 
