@@ -20,7 +20,7 @@ DonkeyServer::~DonkeyServer() {
 }
 
 bool DonkeyServer::Init() {
-  DonkeyWorker::Init();
+  DonkeyThread::Init();
   ClockHandler(0, 0, this);
   return true;
 }
