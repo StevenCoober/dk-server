@@ -102,6 +102,7 @@ bool DonkeyBaseConnection::StartRead() {
 
 bool DonkeyBaseConnection::StartWrite() {
   if (!IsConnected()) {
+    DK_DEBUG("[warn] %s: not connected\n", __func__);
     return false;
   }
 
