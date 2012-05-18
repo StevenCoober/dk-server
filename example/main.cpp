@@ -8,8 +8,8 @@
 #include "donkey_common.h"
 #include "main.h"
 
-#undef dlog1
-#define dlog1
+//#undef dlog1
+//#define dlog1
 
 using namespace std;
 
@@ -44,6 +44,10 @@ class PSConnection: public DonkeyBaseConnection {
 };
 
 class SrvConnection: public DonkeyBaseConnection {
+  static void PrintInfo(void *arg) {
+    //cout << (const char *)arg << endl;
+  }
+
   virtual void ConnectedCallback() {
     dlog1("new SrvConnection fd:%d %s:%d\n", fd_, host_.c_str(), port_);
   }
@@ -58,6 +62,8 @@ class SrvConnection: public DonkeyBaseConnection {
   }
 
   virtual void WriteCallback() {
+    worker->CallInThread(PrintInfo, (void *)"WorkerThread WriteCallback");
+    ev_thread->CallInThread(PrintInfo, (void *)"EvThread WriteCallback");
     dlog1("SrvConnection %s\n", __func__);
 
     //visit back server http server
@@ -78,11 +84,12 @@ class SrvConnection: public DonkeyBaseConnection {
     */
 
     /* reply what you send */
-    AddOutputBuffer(buf); /* buf will be drained hear */
-    StartWrite();
-   
+    //AddOutputBuffer(buf); /* buf will be drained hear */
+    //StartWrite();
+    if (!Send(buf))
+      printf("Send error\n");
     
-    //set_keep_alive(true);
+    set_keep_alive(false);
     /*  buf already drained in AddOutputBuffer 
     evbuffer_drain(buf, total_size);
     */

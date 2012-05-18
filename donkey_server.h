@@ -39,12 +39,10 @@ public:
 
   DonkeyBaseConnection *get_conn(int conn_id);
 
-  /*
-  struct event_base *get_base() {
-    return base_; 
+  int get_conns_map_size() {
+    return conns_map_.size();
   }
-  */
-
+  
   unsigned int get_current_time() {
     return current_time_;
   }
