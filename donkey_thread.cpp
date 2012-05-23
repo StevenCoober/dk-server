@@ -51,7 +51,7 @@ void DonkeyEventThread::NotifyCb(int fd, short which) {
   for ( ; !pending_cbs_.empty(); ) {
     try {
       DeferredCb deferred_cb = pending_cbs_.pop();  
-      deferred_cb.Call();
+      deferred_cb.Call(this);
     } catch (const std::exception e) {
       break;
     }

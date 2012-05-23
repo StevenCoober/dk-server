@@ -29,7 +29,7 @@ class MyHttpRequest: public DonkeyHttpRequest {
 
 
 class PSConnection: public DonkeyBaseConnection {
-  static void DoInWorkerThread(void *arg) {
+  static void DoInWorkerThread(DonkeyBaseThread *th, void *arg) {
     dlog1("PSConnection::%s\n", __func__);
   }
 
@@ -44,7 +44,7 @@ class PSConnection: public DonkeyBaseConnection {
 };
 
 class SrvConnection: public DonkeyBaseConnection {
-  static void PrintInfo(void *arg) {
+  static void PrintInfo(DonkeyBaseThread *th, void *arg) {
     //cout << (const char *)arg << endl;
   }
 
@@ -165,11 +165,11 @@ class MyServer: public DonkeyServer {
   }
 };
 
-static void hello_in_mainthread(void *arg) {
+static void hello_in_mainthread(DonkeyBaseThread *th, void *arg) {
   cout << "hello, i'm in main thread id: " << pthread_self() << endl;
 }
 
-static void hello_in_workerthread(void *arg) {
+static void hello_in_workerthread(DonkeyBaseThread *th, void *arg) {
   MyServer *server = (MyServer *)arg; 
 
   cout << "hello, i'm in worker thread id: " << pthread_self() << endl;
@@ -177,7 +177,7 @@ static void hello_in_workerthread(void *arg) {
     server->CallInThread(hello_in_mainthread, NULL);
 }
 
-static void hello_in_evthread(void *arg) {
+static void hello_in_evthread(DonkeyBaseThread *th, void *arg) {
   cout << "hello, i'm in event thread id: " << pthread_self() << endl;
 }
 
