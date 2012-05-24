@@ -129,6 +129,7 @@ void DonkeyBaseConnection::ReadHandler() {
 
   enum READ_STATUS read_status;
   bool stop = false;
+  int nreqs = 200;
 
   switch (state_) {
   case DKCON_READING:
@@ -137,7 +138,7 @@ void DonkeyBaseConnection::ReadHandler() {
       if (state_ == DKCON_IDLE)
         state_ = DKCON_READING;
 
-      while (!stop) {
+      while (!stop && nreqs-- > 0) {
         read_status = RecvData();
 
         switch (read_status) {
