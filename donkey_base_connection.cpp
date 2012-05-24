@@ -128,6 +128,7 @@ void DonkeyBaseConnection::ReadHandler() {
     return;
 
   enum READ_STATUS read_status;
+  bool stop = false;
 
   switch (state_) {
   case DKCON_READING:
@@ -136,22 +137,32 @@ void DonkeyBaseConnection::ReadHandler() {
       if (state_ == DKCON_IDLE)
         state_ = DKCON_READING;
 
-      read_status = RecvData();
+      while (!stop) {
+        read_status = RecvData();
 
-      switch (read_status) {
-      case READ_ALL_DATA:
-        ReadDone();
-        break;
+        switch (read_status) {
+        case READ_ALL_DATA:
+          ReadDone();
+          if (evbuffer_get_length(get_input_buffer()) == 0)
+            stop = true;
+          break;
 
-      case READ_INNER_ERROR:
-      case READ_MEMORY_ERROR:
-      case READ_BAD_CLIENT:
-        Fail(DKCON_ERROR_PARSE_ERROR);
-        break;
+        case READ_INNER_ERROR:
+        case READ_MEMORY_ERROR:
+        case READ_BAD_CLIENT:
+          Fail(DKCON_ERROR_PARSE_ERROR);
+          stop = true;
+          break;
 
-      case READ_NEED_MORE_DATA:
-        break;
-      }
+        case READ_NEED_MORE_DATA:
+          stop = true;
+          break;
+
+        default:
+          stop = true;
+          break;
+        }
+      } /* while */
     }
     break;
  

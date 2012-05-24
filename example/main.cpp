@@ -73,8 +73,10 @@ class SrvConnection: public DonkeyBaseConnection {
 
   virtual enum READ_STATUS RecvData() {
     struct evbuffer *buf = get_input_buffer();
-    /* 
     size_t rbuf_size = evbuffer_get_length(buf);
+    
+    dlog1("RecvData %d\n", rbuf_size);
+    /* 
     size_t total_size = 8;
 
     if (rbuf_size < total_size) {
