@@ -35,19 +35,35 @@ public:
   bool StartWrite();
 
   void EnableRead() {
-    bufferevent_disable(bufev_, EV_READ); 
-  }
-
-  void DisableRead() {
+    int event = bufferevent_get_enabled(bufev_);
+    if (event & EV_READ)
+      return;
     bufferevent_enable(bufev_, EV_READ); 
   }
-  
+
   void EnableWrite() {
+    int event = bufferevent_get_enabled(bufev_);
+    if (event & EV_WRITE)
+      return;
   	bufferevent_enable(bufev_, EV_WRITE); 
   }
 
+  void DisableRead() {
+    int event = bufferevent_get_enabled(bufev_);
+    if (event & EV_READ)
+      bufferevent_disable(bufev_, EV_READ); 
+  }
+
   void DisableWrite() {
-    bufferevent_disable(bufev_, EV_WRITE);  
+    int event = bufferevent_get_enabled(bufev_);
+    if (event & EV_WRITE)
+      bufferevent_disable(bufev_, EV_WRITE);  
+  }
+
+  void DisableReadWrite() {
+    int old = bufferevent_get_enabled(bufev_);
+    if (old)
+      bufferevent_disable(bufev_, old); 
   }
 
   bool Send(struct evbuffer *buf) {
