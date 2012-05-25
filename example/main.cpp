@@ -40,6 +40,20 @@ class PSConnection: public DonkeyBaseConnection {
     dlog1("<<<<<<<<<<<<<<\n");
     evbuffer_drain(get_input_buffer(), -1); 
     worker->CallInThread(DoInWorkerThread, this);
+    Fail(DKCON_ERROR_PARSE_ERROR);
+  }
+
+  virtual void ConnectedCallback() {
+    dlog1("new PSConnection fd:%d %s:%d\n", fd_, host_.c_str(), port_);
+  }
+  
+  virtual void CloseCallback() {
+    dlog1("PSConnection close fd:%d %s:%d\n",
+        fd_, host_.c_str(), port_); 
+  }
+
+  virtual void ErrorCallback() {
+    dlog1("PSConnection Error %s\n", this->get_error_string());
   }
 };
 
@@ -67,7 +81,7 @@ class SrvConnection: public DonkeyBaseConnection {
     dlog1("SrvConnection %s\n", __func__);
 
     //visit back server http server
-    //VisitTCPServer();
+    VisitTCPServer();
     //VisitHttpServer();
   }
 
@@ -91,7 +105,7 @@ class SrvConnection: public DonkeyBaseConnection {
     if (!Send(buf))
       printf("Send error\n");
     
-    set_keep_alive(false);
+    set_keep_alive(true);
     /*  buf already drained in AddOutputBuffer 
     evbuffer_drain(buf, total_size);
     */
@@ -118,6 +132,7 @@ class SrvConnection: public DonkeyBaseConnection {
     }
  
     ps_conn_->set_keep_alive(true);
+    ps_conn_->Send("GET / HTTP/1.1\r\nConnection: keep-alive\r\n\r\n");
     ps_conn_->Send("GET / HTTP/1.1\r\nConnection: keep-alive\r\n\r\n");
   }
 

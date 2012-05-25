@@ -82,8 +82,8 @@ bool DonkeyBaseConnection::StartRead() {
   assert(bufev_);
 
     /* Set up an event to read data */
-	bufferevent_disable(bufev_, EV_WRITE);
-	bufferevent_enable(bufev_, EV_READ);
+	DisableWrite();
+	EnableRead();
 	state_ = DKCON_READING;
 	/* Reset the bufferevent callbacks */
 	bufferevent_setcb(bufev_,
@@ -109,7 +109,7 @@ bool DonkeyBaseConnection::StartWrite() {
   assert(bufev_);
 
   state_ = DKCON_WRITING; 
-  bufferevent_enable(bufev_, EV_WRITE);
+  EnableWrite();
 
 	/* Disable the read callback: we don't actually care about data;
 	 * we only care about close detection.  (We don't disable reading,
@@ -307,7 +307,7 @@ cleanup:
 void DonkeyBaseConnection::Fail(DonkeyConnectionError error) {
   error_ = error;
 
-  bufferevent_disable(bufev_, EV_READ|EV_WRITE);
+  DisableReadWrite();
   ErrorCallback();
   Reset();
   
@@ -327,7 +327,7 @@ void DonkeyBaseConnection::Reset() {
   if (!bufev_)
     return;
 
-  bufferevent_disable(bufev_, EV_READ|EV_WRITE);
+  DisableReadWrite();
 
   if (fd_ != -1) {
     //if (IsConnected())
@@ -368,7 +368,7 @@ bool DonkeyBaseConnection::Connect() {
 	bufferevent_settimeout(bufev_, 0,
 	    timeout_ != -1 ? timeout_ : DK_CONNECT_TIMEOUT);
 
-  bufferevent_enable(bufev_, EV_WRITE);
+  EnableWrite();
 
   string ip;
 
