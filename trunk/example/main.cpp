@@ -33,7 +33,7 @@ class PSConnection: public DonkeyBaseConnection {
     dlog1("PSConnection::%s\n", __func__);
   }
 
-  virtual enum READ_STATUS RecvData() {
+  virtual enum READ_STATUS ReadCallback() {
     char *resp = (char *)evbuffer_pullup(get_input_buffer(), -1);
     dlog1(">>>>>>>>>>>>>>\n");
     dlog1("PSConnection::%s: %s\n", __func__, resp);
@@ -85,11 +85,11 @@ class SrvConnection: public DonkeyBaseConnection {
     //VisitHttpServer();
   }
 
-  virtual enum READ_STATUS RecvData() {
+  virtual enum READ_STATUS ReadCallback() {
     struct evbuffer *buf = get_input_buffer();
     size_t rbuf_size = evbuffer_get_length(buf);
     
-    dlog1("RecvData %d\n", rbuf_size);
+    dlog1("ReadCallback %d\n", rbuf_size);
     /* 
     size_t total_size = 8;
 
