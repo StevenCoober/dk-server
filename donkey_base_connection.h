@@ -232,7 +232,7 @@ protected:
   virtual void ErrorCallback() {}
   virtual void WriteCallback() {}
 
-  virtual enum READ_STATUS RecvData() {
+  virtual enum READ_STATUS ReadCallback() {
     evbuffer_drain(bufferevent_get_input(bufev_), -1); 
     return READ_ALL_DATA; 
   } 

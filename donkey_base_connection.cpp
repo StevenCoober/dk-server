@@ -139,7 +139,7 @@ void DonkeyBaseConnection::ReadHandler() {
         state_ = DKCON_READING;
 
       while (!stop && nreqs-- > 0) {
-        read_status = RecvData();
+        read_status = ReadCallback();
 
         switch (read_status) {
         case READ_ALL_DATA:
