@@ -8,8 +8,8 @@
 #define HTTP_PORT 80
 #define HTTP_POST_DATA "I'm donkey_server"
 
-#define BACK_HOST "www.example.com"
-#define BACK_PORT 80
+#define BACK_HOST "192.168.3.182"
+#define BACK_PORT 8000
 
 #define dlog1(args...) fprintf(stdout, args) 
 
