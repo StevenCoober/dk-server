@@ -277,14 +277,14 @@ void DonkeyBaseConnection::EventConnectCb(struct bufferevent *bufev,
   DonkeyBaseConnection *conn = (DonkeyBaseConnection *)arg;
   int error;
 	ev_socklen_t errsz = sizeof(error);
-  
+
+  int fd = bufferevent_getfd(bufev);
+  conn->set_fd(fd);
+
   if (!(what & BEV_EVENT_CONNECTED)) {
     EventErrorCb(bufev, what, arg);
     return;
   }
-
-  int fd = bufferevent_getfd(bufev);
-  conn->set_fd(fd);
 
   /* Check if the connection completed */
 	if (getsockopt(fd, SOL_SOCKET, SO_ERROR, (void*)&error,
@@ -330,6 +330,9 @@ void DonkeyBaseConnection::Reset() {
     return;
 
   DisableReadWrite();
+
+  if (fd_ == -1)
+    fd_ = bufferevent_getfd(bufev_);
 
   if (fd_ != -1) {
     //if (IsConnected())
