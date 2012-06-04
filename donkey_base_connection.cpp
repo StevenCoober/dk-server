@@ -43,6 +43,8 @@ bool DonkeyBaseConnection::Init(struct event_base *base,
 
   if (fd == -1)
     kind_ = CON_OUTGOING;
+  else
+    kind_ = CON_INCOMING;
 
   fd_ = fd;
   base_ = base;
@@ -349,8 +351,6 @@ void DonkeyBaseConnection::Reset() {
 	state_ = DKCON_DISCONNECTED;
   keep_alive_ = false;
   timeout_ = -1;
-  id_ = -1;
-  kind_ = CON_INCOMING,
   error_ = DKCON_ERROR_NONE;
 }
 
