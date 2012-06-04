@@ -347,6 +347,11 @@ void DonkeyBaseConnection::Reset() {
   
   inited_ = false;
 	state_ = DKCON_DISCONNECTED;
+  keep_alive_ = false;
+  timeout_ = -1;
+  id_ = -1;
+  kind_ = CON_INCOMING,
+  error_ = DKCON_ERROR_NONE;
 }
 
 bool DonkeyBaseConnection::Connect() {
