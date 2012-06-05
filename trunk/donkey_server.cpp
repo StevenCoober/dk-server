@@ -4,6 +4,9 @@
  */
 
 #include "donkey_core.h"
+#include "donkey_log.h"
+
+log_func_t DonkeyLog::log_func_ = NULL;
 
 unsigned int DonkeyServer::current_time_;
 
