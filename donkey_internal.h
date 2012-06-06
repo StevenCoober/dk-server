@@ -19,9 +19,9 @@ enum DonkeyConnectionKind {
   CON_OUTGOING
 };
 
-#define DK_CONNECT_TIMEOUT 10
-#define DK_READ_TIMEOUT    10
-#define DK_WRITE_TIMEOUT   10
+#define DK_CONNECT_TIMEOUT 45
+#define DK_READ_TIMEOUT    50
+#define DK_WRITE_TIMEOUT   50
 
 enum DonkeyConnectionState {
   DKCON_DISCONNECTED,

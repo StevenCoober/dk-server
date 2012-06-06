@@ -12,7 +12,8 @@ unsigned int DonkeyServer::current_time_;
 
 DonkeyServer::DonkeyServer()
     : listener_(NULL),
-      signal_event_(NULL) {
+      signal_event_(NULL),
+      timeout_(-1) {
 }
 
 DonkeyServer::~DonkeyServer() {
@@ -100,7 +101,7 @@ bool DonkeyServer::MakeConnection(int fd,
 
   conn->ConnectMade();
   
-
+  conn->set_timeout(timeout_);
   return conn->StartRead();
 }
 

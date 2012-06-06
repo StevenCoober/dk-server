@@ -195,6 +195,10 @@ public:
 
   void set_timeout(int timeout) {
     timeout_ = timeout;
+    if (timeout_ != -1)
+      bufferevent_settimeout(bufev_, timeout_, timeout_);
+    else
+      bufferevent_settimeout(bufev_, DK_READ_TIMEOUT, DK_WRITE_TIMEOUT);
   }
    
   static const char *StrError(DonkeyConnectionError error) {

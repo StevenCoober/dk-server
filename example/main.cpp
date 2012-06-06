@@ -226,6 +226,7 @@ int main(int argc, char **argv) {
   for (int i = 0; i < 10; i++)
     ev_thread->CallInThread(hello_in_evthread, server);
 
+  //server->set_timeout(10);
   server->EventLoop();
 
   delete server;
