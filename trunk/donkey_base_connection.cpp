@@ -412,10 +412,7 @@ void DonkeyBaseConnection::ConnectMade() {
         this);
 
     if (timeout_ != -1) {
-      struct timeval tv;
-      tv.tv_sec = timeout_;
-      tv.tv_usec = 0;
-      bufferevent_set_timeouts(bufev_, &tv, &tv);
+      bufferevent_settimeout(bufev_, timeout_, timeout_);
     }
 
     if (evbuffer_get_length(get_output_buffer()) > 0)

@@ -47,6 +47,10 @@ public:
     return current_time_;
   }
 
+  void set_timeout(int timeout_in_secs) {
+    timeout_ = timeout_in_secs;
+  }
+
 protected:
   virtual void ClockCallback() {
   }
@@ -74,6 +78,7 @@ private:
   vector<DonkeyBaseConnection *> free_conns_;
   static unsigned int            current_time_;
   hash_map<int, DonkeyBaseConnection *> conns_map_;
+  int timeout_;
 };
 
 #endif
