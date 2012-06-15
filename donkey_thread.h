@@ -28,6 +28,10 @@ public:
     return false;
   }
 
+  size_t PendingQueSize() {
+    return pending_cbs_.size();
+  }
+
   struct event_base *get_base() {
     return base_; 
   }
