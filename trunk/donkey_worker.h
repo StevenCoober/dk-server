@@ -27,6 +27,10 @@ public:
     return true;
   }
 
+  size_t PendingQueSize() {
+    return pending_cbs_.size();
+  }
+
   virtual int ThreadRoutine();
 
   bool CallInThread(deferred_cb_fn cb, void *arg) {

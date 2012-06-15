@@ -226,6 +226,8 @@ int main(int argc, char **argv) {
   for (int i = 0; i < 10; i++)
     ev_thread->CallInThread(hello_in_evthread, server);
 
+  dlog1("woker quesize %d\n", worker->PendingQueSize());
+  dlog1("ev_thread quesize %d\n", ev_thread->PendingQueSize());
   //server->set_timeout(10);
   server->EventLoop();
 
