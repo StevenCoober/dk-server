@@ -76,6 +76,7 @@ bool DonkeyBaseConnection::Init(struct event_base *base,
     id_ = ++last_conn_id_;
  
   inited_ = true;
+  keep_alive_ = false;
 
   return true;
 }
