@@ -6,6 +6,8 @@
 #ifndef __DONKEY_INTERVAL_INCLUDE__
 #define __DONKEY_INTERVAL_INCLUDE__
 
+class DonkeyBaseThread;
+
 enum READ_STATUS {
   READ_BAD_CLIENT,
   READ_NEED_MORE_DATA,
