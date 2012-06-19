@@ -84,7 +84,7 @@ public:
     return true;
   }
 
-  bool Send(const string &buf) {
+  bool Send(const std::string &buf) {
     return Send(buf.data(), buf.size());
   }
 
@@ -112,7 +112,7 @@ public:
     bufferevent_write_buffer(bufev_, buf); 
   }
 
-  void AddOutputBuffer(const string &data) {
+  void AddOutputBuffer(const std::string &data) {
     assert(bufev_);
     evbuffer_add(get_output_buffer(), data.data(), data.size()); 
   }

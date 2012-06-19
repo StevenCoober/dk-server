@@ -6,6 +6,8 @@
 #include "donkey_core.h"
 #include "donkey_util.h"
 
+using namespace std;
+
 int DonkeyBaseConnection::last_conn_id_;
 
 DonkeyBaseConnection::DonkeyBaseConnection()

@@ -9,9 +9,6 @@
 #include "donkey_common.h"
 #include "donkey_thread.h"
 
-using namespace std;
-using namespace __gnu_cxx;
-
 struct event_base;
 struct evconnlistener;
 struct event;
@@ -75,9 +72,9 @@ private:
 	struct event                  *signal_event_;
 
 	struct sockaddr_in             sin_;
-  vector<DonkeyBaseConnection *> free_conns_;
+  std::vector<DonkeyBaseConnection *> free_conns_;
   static unsigned int            current_time_;
-  hash_map<int, DonkeyBaseConnection *> conns_map_;
+  __gnu_cxx::hash_map<int, DonkeyBaseConnection *> conns_map_;
   int timeout_;
 };
 

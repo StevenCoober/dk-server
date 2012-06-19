@@ -120,7 +120,7 @@ private:
 
 protected:
   struct evhttp_connection *http_conn_;
-  string                    host_;
+  std::string               host_;
   unsigned short            port_;
 };
 

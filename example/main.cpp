@@ -5,11 +5,11 @@
 #include <stdio.h>
 
 #include "donkey_core.h"
-#include "donkey_common.h"
+//#include "donkey_common.h"
 #include "main.h"
 
-//#undef dlog1
-//#define dlog1
+#undef dlog1
+#define dlog1
 
 using namespace std;
 
@@ -76,8 +76,8 @@ class SrvConnection: public DonkeyBaseConnection {
   }
 
   virtual void WriteCallback() {
-    worker->CallInThread(PrintInfo, (void *)"WorkerThread WriteCallback");
-    ev_thread->CallInThread(PrintInfo, (void *)"EvThread WriteCallback");
+    //worker->CallInThread(PrintInfo, (void *)"WorkerThread WriteCallback");
+    //ev_thread->CallInThread(PrintInfo, (void *)"EvThread WriteCallback");
     dlog1("SrvConnection %s\n", __func__);
 
     //visit back server http server
@@ -132,8 +132,8 @@ class SrvConnection: public DonkeyBaseConnection {
     }
  
     ps_conn_->set_keep_alive(true);
-    //ps_conn_->Send("GET / HTTP/1.1\r\nConnection: keep-alive\r\n\r\n");
-    ps_conn_->Send("GET / HTTP/1.1\r\nConnection: close\r\n\r\n");
+    ps_conn_->Send("GET / HTTP/1.1\r\nConnection: keep-alive\r\n\r\n");
+    //ps_conn_->Send("GET / HTTP/1.1\r\nConnection: close\r\n\r\n");
   }
 
   bool VisitHttpServer() {
