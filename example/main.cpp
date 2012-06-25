@@ -29,18 +29,12 @@ class MyHttpRequest: public DonkeyHttpRequest {
 
 
 class PSConnection: public DonkeyBaseConnection {
-  static void DoInWorkerThread(DonkeyBaseThread *th, void *arg) {
-    dlog1("PSConnection::%s\n", __func__);
-  }
-
   virtual enum READ_STATUS ReadCallback() {
     char *resp = (char *)evbuffer_pullup(get_input_buffer(), -1);
     dlog1(">>>>>>>>>>>>>>\n");
     dlog1("PSConnection::%s: %s\n", __func__, resp);
     dlog1("<<<<<<<<<<<<<<\n");
     evbuffer_drain(get_input_buffer(), -1); 
-    worker->CallInThread(DoInWorkerThread, this);
-    Fail(DKCON_ERROR_PARSE_ERROR);
   }
 
   virtual void ConnectedCallback() {
@@ -130,9 +124,10 @@ class SrvConnection: public DonkeyBaseConnection {
         return;
       }
     }
- 
+
+    ps_conn_->set_timeout(10);
     ps_conn_->set_keep_alive(true);
-    ps_conn_->Send("GET / HTTP/1.1\r\nConnection: keep-alive\r\n\r\n");
+    ps_conn_->Send("GET /message.push HTTP/1.1\r\nConnection: keep-alive\r\n\r\n");
     //ps_conn_->Send("GET / HTTP/1.1\r\nConnection: close\r\n\r\n");
   }
 
