@@ -9,7 +9,7 @@
 #define HTTP_POST_DATA "I'm donkey_server"
 
 #define BACK_HOST "192.168.3.182"
-#define BACK_PORT 30012
+#define BACK_PORT 8085
 
 #define dlog1(args...) fprintf(stdout, args) 
 
