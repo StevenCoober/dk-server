@@ -344,6 +344,7 @@ void DonkeyBaseConnection::Reset() {
     shutdown(fd_, SHUT_WR);
     close(fd_);
     fd_ = -1;
+    bufferevent_setfd(bufev_, -1);
   }
 
   struct evbuffer *tmp = get_input_buffer();
