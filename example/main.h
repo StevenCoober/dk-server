@@ -2,7 +2,7 @@
 #ifndef __MAIN_INCLUDE__
 #define __MAIN_INCLUDE__
 
-#define PORT 60002
+#define PORT 60006
 
 #define HTTP_HOST "www.example.com"
 #define HTTP_PORT 80

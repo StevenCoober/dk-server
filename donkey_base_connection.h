@@ -71,11 +71,12 @@ public:
       if (!IsConnected()) {
         if (!Connect())
           return false;
+        else
+          return 0 == evbuffer_add_buffer(temp_output_buf_, buf);
       }
 
       AddOutputBuffer(buf);
-      if (IsConnected())
-        return StartWrite();
+      return StartWrite();
     } else {
       AddOutputBuffer(buf);
       return StartWrite();
@@ -93,11 +94,12 @@ public:
       if (!IsConnected()) {
         if (!Connect())
           return false;
+        else
+          return 0 == evbuffer_add(temp_output_buf_, buf, len);
       }
 
       AddOutputBuffer(buf, len);
-      if (IsConnected())
-        return StartWrite();
+      return StartWrite();
     } else {
       AddOutputBuffer(buf, len);
       return StartWrite();
@@ -194,6 +196,9 @@ public:
   }
 
   void set_timeout(int timeout) {
+    if (!bufev_)
+      return;
+
     timeout_ = timeout;
     if (timeout_ != -1)
       bufferevent_settimeout(bufev_, timeout_, timeout_);
@@ -233,8 +238,9 @@ protected:
 
   virtual void ConnectedCallback() {}
   virtual void CloseCallback() {} 
-  virtual void ErrorCallback() {}
+  virtual void ErrorCallback(DonkeyConnectionError error) {}
   virtual void WriteCallback() {}
+  virtual void ResetCallback() {}
 
   virtual enum READ_STATUS ReadCallback() {
     evbuffer_drain(bufferevent_get_input(bufev_), -1); 
@@ -277,6 +283,7 @@ protected:
   DonkeyConnectionState    state_;
   DonkeyConnectionKind     kind_;
   DonkeyConnectionError    error_;
+  struct evbuffer         *temp_output_buf_;
 
 private:
   static int last_conn_id_;  

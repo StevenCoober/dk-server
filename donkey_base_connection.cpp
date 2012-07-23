@@ -10,6 +10,14 @@ using namespace std;
 
 int DonkeyBaseConnection::last_conn_id_;
 
+const char *DKCON_STATE_NAMES[] = {
+    "DKCON_DISCONNECTED",
+    "DKCON_CONNECTING",
+    "DKCON_IDLE",
+    "DKCON_READING",
+    "DKCON_WRITING"
+};
+
 DonkeyBaseConnection::DonkeyBaseConnection()
     : inited_(false), 
       base_(NULL),
@@ -21,7 +29,8 @@ DonkeyBaseConnection::DonkeyBaseConnection()
       bufev_(NULL),
       state_(DKCON_DISCONNECTED),
       kind_(CON_INCOMING),
-      error_(DKCON_ERROR_NONE) {
+      error_(DKCON_ERROR_NONE),
+      temp_output_buf_(NULL) {
 }
 
 DonkeyBaseConnection::~DonkeyBaseConnection() {
@@ -31,6 +40,8 @@ DonkeyBaseConnection::~DonkeyBaseConnection() {
 void DonkeyBaseConnection::Destruct() {
   if (bufev_)
     bufferevent_free(bufev_);
+  if (temp_output_buf_)
+    evbuffer_free(temp_output_buf_);
 }
 
 bool DonkeyBaseConnection::Init(struct event_base *base,
@@ -70,6 +81,12 @@ bool DonkeyBaseConnection::Init(struct event_base *base,
 
   if (!bufev_)
     return false;
+
+  if (!temp_output_buf_) {
+    temp_output_buf_ = evbuffer_new();
+    if (!temp_output_buf_)
+      return false;
+  }
 
   bufferevent_base_set(base_, bufev_);
 
@@ -266,8 +283,9 @@ void DonkeyBaseConnection::EventErrorCb(struct bufferevent *bufev,
       error = DKCON_ERROR_ERRNO;
     }
     
-    DK_DEBUG("[error] %s: %s for %s:%d on %d\n", __func__, StrError(error),
-        conn->get_host().c_str(), conn->get_port(), conn->get_fd());
+    DK_DEBUG("[error] %s: %s for %s:%d on %d %s\n", __func__, StrError(error),
+        conn->get_host().c_str(), conn->get_port(), conn->get_fd(),
+        DKCON_STATE_NAMES[conn->get_state()]);
     conn->Fail(error);
   } else {
     conn->Fail(DKCON_ERROR_ERRNO);
@@ -312,20 +330,36 @@ cleanup:
 void DonkeyBaseConnection::Fail(DonkeyConnectionError error) {
   error_ = error;
 
+  if (keep_alive() &&
+      error == DKCON_ERROR_TIMEOUT &&
+      state_ != DKCON_CONNECTING) {
+    ErrorCallback(error);
+    if (state_ == DKCON_WRITING)
+      EnableWrite();
+    else
+      EnableRead();
+
+    error_ = DKCON_ERROR_NONE;
+    return;
+  }
+
   DisableReadWrite();
-  ErrorCallback();
+  ErrorCallback(error);
   Reset();
-  
+
   if (kind_ == CON_INCOMING) {
     AddToFreeConn();
     return;
+  } else {
+    ResetCallback();
   }
 }
 
 void DonkeyBaseConnection::ConnectFail(DonkeyConnectionError error) {
   error_ = error;
-  ErrorCallback();
+  ErrorCallback(error);
   Reset();
+  ResetCallback();
 }
 
 void DonkeyBaseConnection::Reset() {
@@ -353,6 +387,10 @@ void DonkeyBaseConnection::Reset() {
   evbuffer_unfreeze(tmp, 1);	
   evbuffer_drain(tmp, evbuffer_get_length(tmp));
   evbuffer_freeze(tmp, 1);
+  if (temp_output_buf_) {
+    tmp = temp_output_buf_;
+    evbuffer_drain(tmp, evbuffer_get_length(tmp));
+  }
   
   inited_ = false;
 	state_ = DKCON_DISCONNECTED;
@@ -415,6 +453,10 @@ void DonkeyBaseConnection::ConnectMade() {
 
     if (timeout_ != -1) {
       bufferevent_settimeout(bufev_, timeout_, timeout_);
+    }
+
+    if (temp_output_buf_ && evbuffer_get_length(temp_output_buf_) > 0) {
+      AddOutputBuffer(temp_output_buf_);
     }
 
     if (evbuffer_get_length(get_output_buffer()) > 0)
