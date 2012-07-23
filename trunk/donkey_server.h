@@ -39,6 +39,10 @@ public:
   int get_conns_map_size() {
     return conns_map_.size();
   }
+
+  int get_free_conns_size() {
+    return free_conns_.size();
+  }
   
   unsigned int get_current_time() {
     return current_time_;

@@ -8,6 +8,7 @@
 
 bool DonkeyEventThread::Init() {
   base_ = event_base_new();
+
   if (!base_)
     return false;
   

@@ -30,6 +30,7 @@ class MyHttpRequest: public DonkeyHttpRequest {
 
 class PSConnection: public DonkeyBaseConnection {
   virtual enum READ_STATUS ReadCallback() {
+    set_keep_alive(true);
     char *resp = (char *)evbuffer_pullup(get_input_buffer(), -1);
     dlog1(">>>>>>>>>>>>>>\n");
     dlog1("PSConnection::%s: %s\n", __func__, resp);
@@ -75,7 +76,7 @@ class SrvConnection: public DonkeyBaseConnection {
     dlog1("SrvConnection %s\n", __func__);
 
     //visit back server http server
-    VisitTCPServer();
+    //VisitTCPServer();
     //VisitHttpServer();
   }
 
@@ -223,7 +224,7 @@ int main(int argc, char **argv) {
 
   dlog1("woker quesize %d\n", worker->PendingQueSize());
   dlog1("ev_thread quesize %d\n", ev_thread->PendingQueSize());
-  //server->set_timeout(10);
+  server->set_timeout(10);
   server->EventLoop();
 
   delete server;
