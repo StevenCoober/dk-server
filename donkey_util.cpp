@@ -31,3 +31,18 @@ bool DonkeyGetHostByName(const string &host, string &ip) {
 
   return true;
 }
+
+bool DonkeyGetHostName(std::string &host) {
+  char buf[NI_MAXHOST];
+  if (gethostname(buf, sizeof(buf)) == 0) {
+    host.assign(buf, strlen(buf));
+    return true;
+  }
+  return false;
+}
+
+bool DonkeyGetHostIp(std::string &ip) {
+  string host;
+  DonkeyGetHostName(host);
+  return DonkeyGetHostByName(host, ip);
+}

@@ -10,5 +10,7 @@
 #include "donkey_common.h"
 
 bool DonkeyGetHostByName(const std::string &host, std::string &ip);
+bool DonkeyGetHostName(std::string &host);
+bool DonkeyGetHostIp(std::string &ip);
 
 #endif

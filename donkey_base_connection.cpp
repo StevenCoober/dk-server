@@ -38,6 +38,7 @@ DonkeyBaseConnection::~DonkeyBaseConnection() {
 }
 
 void DonkeyBaseConnection::Destruct() {
+  Reset();
   if (bufev_)
     bufferevent_free(bufev_);
   if (temp_output_buf_)
@@ -283,9 +284,6 @@ void DonkeyBaseConnection::EventErrorCb(struct bufferevent *bufev,
       error = DKCON_ERROR_ERRNO;
     }
     
-    DK_DEBUG("[error] %s: %s for %s:%d on %d %s\n", __func__, StrError(error),
-        conn->get_host().c_str(), conn->get_port(), conn->get_fd(),
-        DKCON_STATE_NAMES[conn->get_state()]);
     conn->Fail(error);
   } else {
     conn->Fail(DKCON_ERROR_ERRNO);
@@ -342,6 +340,11 @@ void DonkeyBaseConnection::Fail(DonkeyConnectionError error) {
     error_ = DKCON_ERROR_NONE;
     return;
   }
+
+  
+  DK_DEBUG("[error] %s: %s for %s:%d on %d %s\n", __func__, StrError(error),
+      get_host().c_str(), get_port(), get_fd(),
+      DKCON_STATE_NAMES[get_state()]);
 
   DisableReadWrite();
   ErrorCallback(error);
@@ -421,9 +424,15 @@ bool DonkeyBaseConnection::Connect() {
   string ip;
 
   /* Libevent evget_addrinfo has a bug */
-  DonkeyGetHostByName(host_, ip);
+  if (!DonkeyGetHostByName(host_, ip)) {
+    ConnectFail(DKCON_ERROR_ERRNO);
+    return false;
+  }
+
   if (ip.empty())
     ip = host_;
+
+  state_ = DKCON_CONNECTING;
 
   int res = bufferevent_socket_connect_hostname(bufev_,
       NULL, AF_INET, ip.c_str(), port_);
@@ -434,8 +443,6 @@ bool DonkeyBaseConnection::Connect() {
     ConnectFail(DKCON_ERROR_ERRNO);     
     return false;
   }
-
-  state_ = DKCON_CONNECTING;
 
   return true;
 }

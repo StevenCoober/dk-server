@@ -8,8 +8,8 @@
 //#include "donkey_common.h"
 #include "main.h"
 
-#undef dlog1
-#define dlog1
+//#undef dlog1
+//#define dlog1
 
 using namespace std;
 
@@ -58,6 +58,7 @@ class SrvConnection: public DonkeyBaseConnection {
   }
 
   virtual void ConnectedCallback() {
+    //bufferevent_setwatermark(bufev_, EV_READ, 16, 128);
     dlog1("new SrvConnection fd:%d %s:%d\n", fd_, host_.c_str(), port_);
   }
   
@@ -97,9 +98,8 @@ class SrvConnection: public DonkeyBaseConnection {
     /* reply what you send */
     //AddOutputBuffer(buf); /* buf will be drained hear */
     //StartWrite();
-    if (!Send(buf))
-      printf("Send error\n");
-    
+    Send(buf);
+    //VisitTCPServer(buf);
     set_keep_alive(true);
     /*  buf already drained in AddOutputBuffer 
     evbuffer_drain(buf, total_size);
@@ -107,7 +107,7 @@ class SrvConnection: public DonkeyBaseConnection {
     return READ_ALL_DATA;
   }
 
-  void VisitTCPServer() {
+  void VisitTCPServer(struct evbuffer *buf) {
     dlog1("VisitTCPServer\n");
 
     if (!ps_conn_) {
@@ -124,12 +124,14 @@ class SrvConnection: public DonkeyBaseConnection {
         dlog1("ps_conn_->Init failed\n");
         return;
       }
+      ps_conn_->set_timeout(10);
+      ps_conn_->set_keep_alive(true);
     }
 
     ps_conn_->set_timeout(10);
     ps_conn_->set_keep_alive(true);
-    ps_conn_->Send("GET /message.push HTTP/1.1\r\nConnection: keep-alive\r\n\r\n");
-    //ps_conn_->Send("GET / HTTP/1.1\r\nConnection: close\r\n\r\n");
+    //ps_conn_->Send("GET /message.push HTTP/1.1\r\nConnection: keep-alive\r\n\r\n");
+    ps_conn_->Send(buf);
   }
 
   bool VisitHttpServer() {
