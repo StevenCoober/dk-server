@@ -12,7 +12,10 @@
 
 class DonkeyWorker : public DonkeyBaseThread {
 public:
-  DonkeyWorker() : stop_(false) {
+  DonkeyWorker()
+      : stop_(false),
+        extern_event_sem_(NULL),
+        extern_pending_cbs_(NULL) {
   }
 
   bool Init() {
@@ -34,14 +37,25 @@ public:
   virtual int ThreadRoutine();
 
   bool CallInThread(deferred_cb_fn cb, void *arg) {
-    pending_cbs_.push(DeferredCb(cb, arg));
-    return 0 == sem_post(&event_sem_);
+    LockQueue<DeferredCb> *aque =
+       extern_pending_cbs_ ? extern_pending_cbs_ : &pending_cbs_;
+    aque->push(DeferredCb(cb, arg));
+    sem_t *asem = extern_event_sem_ ? extern_event_sem_ : &event_sem_;
+    return 0 == sem_post(asem);
+  }
+
+  void set_extern_sem_queue(sem_t *asem, LockQueue<DeferredCb> *aque) {
+    extern_event_sem_ = asem;
+    extern_pending_cbs_ = aque; 
   }
 
 protected:
   bool                   stop_;
   sem_t                  event_sem_;
   LockQueue<DeferredCb>  pending_cbs_;
+
+  sem_t                 *extern_event_sem_;
+  LockQueue<DeferredCb> *extern_pending_cbs_;
 };
 
 #endif
