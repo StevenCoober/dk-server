@@ -19,7 +19,8 @@ const char *DKCON_STATE_NAMES[] = {
 };
 
 DonkeyBaseConnection::DonkeyBaseConnection()
-    : inited_(false), 
+    : server_(NULL),
+      inited_(false), 
       base_(NULL),
       port_(0),
       fd_(-1),
@@ -442,6 +443,33 @@ bool DonkeyBaseConnection::Connect() {
         __func__, res);
     ConnectFail(DKCON_ERROR_ERRNO);     
     return false;
+  }
+ 
+  int fd = bufferevent_getfd(bufev_);
+  if (fd != -1) {
+    socklen_t namelen = sizeof(struct sockaddr_in);
+    struct sockaddr_in name;
+    socklen_t peer_namelen = sizeof(struct sockaddr_in);
+    struct sockaddr_in peer_name;
+
+    
+    if (0 == getpeername(fd,
+        (struct sockaddr *)&peer_name, &peer_namelen))
+    {
+      if (0 == getsockname(fd,
+            (struct sockaddr *)&name, &namelen))
+      {
+        int flags = 1;
+        if ((name.sin_addr.s_addr == peer_name.sin_addr.s_addr) &&
+            (name.sin_port == peer_name.sin_port)) {
+          setsockopt(fd, SOL_SOCKET, SO_REUSEADDR,
+                     (void *)&flags, sizeof(flags));
+          DK_DEBUG("[error] src addr == dest addr\n");
+          ConnectFail(DKCON_ERROR_ERRNO);     
+          return false;
+        }
+      }
+    }
   }
 
   return true;
