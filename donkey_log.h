@@ -30,9 +30,8 @@ public:
 
       log_func_(buf, fmt_len);
     } else {
-#ifdef _DONKEY_DEBUG
-      vfprintf(stderr, format, va);
-#endif
+      FILE *f = fstream_?fstream_:stderr;
+      vfprintf(f, format, va);
     }
     va_end(va);
   }
@@ -41,8 +40,13 @@ public:
     log_func_ = log_func;
   }
 
+  static void set_fstream(FILE *f) {
+    fstream_ = f;
+  }
+
 private:
   static log_func_t log_func_;
+  static FILE *fstream_;
 };
 
 #define DK_DEBUG(args...) DonkeyLog::Debug(args)

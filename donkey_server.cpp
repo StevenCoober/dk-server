@@ -10,6 +10,7 @@ using namespace std;
 using namespace __gnu_cxx; 
 
 log_func_t DonkeyLog::log_func_ = NULL;
+FILE *DonkeyLog::fstream_ = NULL;
 
 unsigned int DonkeyServer::current_time_;
 

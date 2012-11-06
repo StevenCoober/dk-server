@@ -8,8 +8,8 @@
 //#include "donkey_common.h"
 #include "main.h"
 
-//#undef dlog1
-//#define dlog1
+#undef dlog1
+#define dlog1
 
 using namespace std;
 
