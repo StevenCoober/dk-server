@@ -4,8 +4,8 @@
 
 #define PORT 60006
 
-#define HTTP_HOST "www.example.com"
-#define HTTP_PORT 80
+#define HTTP_HOST "192.168.3.182"
+#define HTTP_PORT 8086
 #define HTTP_POST_DATA "I'm donkey_server"
 
 #define BACK_HOST "192.168.3.182"

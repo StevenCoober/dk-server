@@ -16,17 +16,6 @@ using namespace std;
 class MyServer;
 
 static MyServer *server;
-static DonkeyWorker *worker;
-static DonkeyEventThread *ev_thread;
-
-class MyHttpRequest: public DonkeyHttpRequest {
-  virtual void HandleResponse(struct evhttp_request *req) {
-    dlog1("MyHttpRequest HandleResponse\n"); 
-    DonkeyHttpRequest::DebugResponse(req);
-    delete this;
-  }
-};
-
 
 class PSConnection: public DonkeyBaseConnection {
   virtual enum READ_STATUS ReadCallback() {
@@ -72,13 +61,8 @@ class SrvConnection: public DonkeyBaseConnection {
   }
 
   virtual void WriteCallback() {
-    //worker->CallInThread(PrintInfo, (void *)"WorkerThread WriteCallback");
-    //ev_thread->CallInThread(PrintInfo, (void *)"EvThread WriteCallback");
     dlog1("SrvConnection %s\n", __func__);
 
-    //visit back server http server
-    //VisitTCPServer();
-    //VisitHttpServer();
   }
 
   virtual enum READ_STATUS ReadCallback() {
@@ -86,14 +70,6 @@ class SrvConnection: public DonkeyBaseConnection {
     size_t rbuf_size = evbuffer_get_length(buf);
     
     dlog1("ReadCallback %d\n", rbuf_size);
-    /* 
-    size_t total_size = 8;
-
-    if (rbuf_size < total_size) {
-      dlog1("READ_NEED_MORE_DATA\n");
-      return READ_NEED_MORE_DATA;
-    }
-    */
 
     /* reply what you send */
     //AddOutputBuffer(buf); /* buf will be drained hear */
@@ -134,39 +110,10 @@ class SrvConnection: public DonkeyBaseConnection {
     ps_conn_->Send(buf);
   }
 
-  bool VisitHttpServer() {
-    if (!s_http_client_) {
-      s_http_client_ = new DonkeyHttpClient();
-      if (!s_http_client_)
-        return false;
-    
-      if (!s_http_client_->Init(get_base(), HTTP_HOST, HTTP_PORT))
-        return false;
-    }
-
-    MyHttpRequest *req = new MyHttpRequest();
-    if (!req || !req->Init())
-      return false;
-
-    req->AddHeader("Host", HTTP_HOST);
-    req->AddHeader("Connection", "keep-alive");
-
-    int post_data_len = strlen(HTTP_POST_DATA);
-    char temp[16];
-		sprintf(temp, "%d", post_data_len);
-    
-    req->AddHeader("Content-length", temp);
-    req->AddPostData((void *)HTTP_POST_DATA, post_data_len);
-
-    s_http_client_->SendRequest(req, EVHTTP_REQ_POST, "/index.html");
-  }
-
   static PSConnection * ps_conn_;
-  static DonkeyHttpClient * s_http_client_;
 };
 
 PSConnection * SrvConnection::ps_conn_ = NULL;
-DonkeyHttpClient * SrvConnection::s_http_client_ = NULL;
 
 class MyServer: public DonkeyServer {
   virtual void ClockCallback() {
@@ -196,13 +143,86 @@ static void hello_in_evthread(DonkeyBaseThread *th, void *arg) {
   cout << "hello, i'm in event thread id: " << pthread_self() << endl;
 }
 
+static bool http_run_once();
+static DonkeyHttpClient *s_http_client_ = NULL;
+static long send_http_reqs = 0;
+static long recv_http_resps = 0;
+const int http_parallel = 2;
+static int start_time;
+static int end_time;
+
+class MyHttpRequest: public DonkeyHttpRequest {
+  virtual void HandleResponse(struct evhttp_request *req, void *arg) {
+    //dlog1("MyHttpRequest HandleResponse\n"); 
+    //DonkeyHttpRequest::DebugResponse(req);
+    recv_http_resps++;
+    http_run_once();
+  }
+};
+
+static bool http_run_once() {
+  static int http_run_init = 0;
+  static int last_secs = 0;
+  if (!server)
+    return false;
+
+  if (!s_http_client_) {
+    s_http_client_ = new DonkeyHttpClient();
+    if (!s_http_client_)
+      return false;
+  
+    if (!s_http_client_->Init(server->get_base(), HTTP_HOST, HTTP_PORT, 10))
+      return false;
+  }
+
+  int send_times = 1;
+  if (http_run_init == 0) {
+    send_times = http_parallel; 
+    start_time = time(0);
+    http_run_init = 1;
+  }
+
+  for (int i = 0; i < send_times; i++) {
+    send_http_reqs++;
+    if (send_http_reqs % 10000 == 0) {
+      end_time = time(0);
+      int secs = end_time - start_time;
+      if (secs > last_secs) {
+        last_secs = secs;
+        fprintf(stderr, "send_reqs:%d, recv_reqs:%d, secs:%d\n",
+                send_http_reqs, recv_http_resps, secs);
+      }
+    }
+
+    MyHttpRequest *req = new MyHttpRequest();
+    if (!req)
+      return false;
+
+    if (!req->Init()) {
+      delete req;
+      return false;
+    }
+
+    req->AddHeader("Host", HTTP_HOST);
+    req->AddHeader("Connection", "keep-alive");
+
+    int post_data_len = strlen(HTTP_POST_DATA);
+    char temp[16];
+    sprintf(temp, "%d", post_data_len);
+    
+    req->AddHeader("Content-length", temp);
+    req->AddPostData((void *)HTTP_POST_DATA, post_data_len);
+
+    if (!s_http_client_->SendRequest(req, EVHTTP_REQ_POST, "/index.html")) {
+      delete req;
+    }
+  }
+}
+
 int main(int argc, char **argv) {
   server = new MyServer();
-  worker = new DonkeyWorker();  
-  ev_thread = new DonkeyEventThread();
 
-  if (!worker || !worker->Init() || !server || !server->Init() ||
-      !ev_thread || !ev_thread->Init()) {
+  if (!server || !server->Init()) {
     dlog1("new DonkeyServer Init error\n");
     return 1;
   }
@@ -215,17 +235,8 @@ int main(int argc, char **argv) {
   if (!server->StartListenTCP(NULL, PORT, 1024))
     return 1;
 
-  //start a worker thread
-  worker->Create();
-  ev_thread->Create();
-  for (int i = 0; i < 10; i++) 
-    worker->CallInThread(hello_in_workerthread, server);
-
-  for (int i = 0; i < 10; i++)
-    ev_thread->CallInThread(hello_in_evthread, server);
-
-  dlog1("woker quesize %d\n", worker->PendingQueSize());
-  dlog1("ev_thread quesize %d\n", ev_thread->PendingQueSize());
+  dlog1("begin http_load run ....");
+  http_run_once();
   server->set_timeout(10);
   server->EventLoop();
 
