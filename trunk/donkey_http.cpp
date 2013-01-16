@@ -9,9 +9,8 @@ using namespace std;
 
 /*********** DonkeyHttpRequest ************/
 
-void DonkeyHttpRequest::HandleResponse(struct evhttp_request *req) {
+void DonkeyHttpRequest::HandleResponse(struct evhttp_request *req, void *arg) {
   DebugResponse(req);
-  delete this;
 }
 
 void DonkeyHttpRequest::EventHttpRequestCb(
@@ -19,7 +18,8 @@ void DonkeyHttpRequest::EventHttpRequestCb(
   DonkeyHttpRequest *http_req = (DonkeyHttpRequest *)arg;
   
   if (http_req) {
-    http_req->HandleResponse(req);
+    http_req->DoHandleResponse(req);
+    delete http_req; 
   }
 }
 
@@ -86,8 +86,8 @@ void DonkeyHttpRequest::DebugHeaders(struct evkeyvalq *headers) {
 /*********** DonkeyHttpClient ************/
 
 bool DonkeyHttpClient::Init(
-    struct event_base *evbase, const char *host, unsigned short port) {
-  if (http_conn_)
+    struct event_base *evbase, const char *host, unsigned short port, int conns) {
+  if (!http_conns_.empty())
     return false;
 
   if (!evbase || !host || port == 0)
@@ -103,11 +103,18 @@ bool DonkeyHttpClient::Init(
   if (ip.empty())
     ip = host;
 
-  http_conn_ = evhttp_connection_base_new(evbase, NULL, ip.c_str(), port);
-  if (!http_conn_)
-    return false;
+  if (conns <=0)
+    conns = 10;
 
-  evhttp_connection_set_closecb(http_conn_, EventHttpCloseCb, this);
+  for (int i = 0; i < conns; i++) {
+    struct evhttp_connection * conn =
+        evhttp_connection_base_new(evbase, NULL, ip.c_str(), port);
+    if (!conn)
+      return false;
+
+    http_conns_.push_back(conn);
+    evhttp_connection_set_closecb(conn, EventHttpCloseCb, this);
+  }
 
   return true;
 }
@@ -116,7 +123,7 @@ void DonkeyHttpClient::EventHttpCloseCb(struct evhttp_connection *conn, void *ar
   DonkeyHttpClient *http_client = (DonkeyHttpClient *)arg;
   
   if (http_client) 
-    http_client->CloseCallback();
+    http_client->CloseCallback(conn);
 }
 
 

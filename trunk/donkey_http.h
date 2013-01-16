@@ -12,14 +12,15 @@ class DonkeyHttpClient;
 
 class DonkeyHttpRequest {
 public:
-  DonkeyHttpRequest() : http_req_(NULL) {
+  DonkeyHttpRequest() : http_req_(NULL), arg_(NULL) {
   }
 
   virtual ~DonkeyHttpRequest() {
   }
 
-  bool Init() {
+  bool Init(void *arg=NULL) {
     http_req_ = evhttp_request_new(EventHttpRequestCb, (void *)this);
+    arg_ = arg;
     return http_req_ != NULL; 
   }
 
@@ -39,7 +40,10 @@ public:
     return http_req_;
   }
 
-  virtual void HandleResponse(struct evhttp_request *req);
+  virtual void HandleResponse(struct evhttp_request *req, void *arg);
+  void DoHandleResponse(struct evhttp_request *req) {
+    HandleResponse(req, arg_);
+  }
   
   void DebugResponse(struct evhttp_request *req);
   void DebugHeaders(struct evkeyvalq *headers);
@@ -50,19 +54,25 @@ private:
 
 protected:
   struct evhttp_request *http_req_;
+  void *arg_;
 };
 
 class DonkeyHttpClient {
 public: 
-  DonkeyHttpClient() : http_conn_(NULL) {
+  DonkeyHttpClient() : last_conn_idx_(0) {
   }
   
   virtual ~DonkeyHttpClient() {
-    if (http_conn_)
-      free(http_conn_);
+    for (size_t i = 0; i < http_conns_.size(); i++) {  
+      if (http_conns_[i])
+        evhttp_connection_free(http_conns_[i]);
+    }
   }
 
-  bool Init(struct event_base *evbase, const char *host, unsigned short port); 
+  bool Init(struct event_base *evbase,
+            const char *host,
+            unsigned short port,
+            int conns=10); 
 
   DonkeyHttpRequest *NewRequest() {
     DonkeyHttpRequest *req = new DonkeyHttpRequest();
@@ -75,17 +85,24 @@ public:
   }
 
   struct evhttp_connection *get_http_conn() {
-    return http_conn_;
+    if (http_conns_.empty())
+      return NULL;
+
+    int idx = last_conn_idx_ % http_conns_.size();
+    last_conn_idx_ = idx + 1;
+    return http_conns_[idx];
   }
 
   void SetTimeout(int timeout_in_secs) {
-    if (http_conn_)
-      evhttp_connection_set_timeout(http_conn_, timeout_in_secs);
+    for (size_t i = 0; i < http_conns_.size(); i++) {
+      evhttp_connection_set_timeout(http_conns_[i], timeout_in_secs);
+    }
   }
 
   void SetRetries(int retries) {
-    if (http_conn_)
-      evhttp_connection_set_retries(http_conn_, retries);
+    for (size_t i = 0; i < http_conns_.size(); i++) {
+      evhttp_connection_set_retries(http_conns_[i], retries);
+    }
   }
 
   /* defined in <event2/http.h>
@@ -106,22 +123,25 @@ public:
   bool SendRequest(DonkeyHttpRequest *dk_http_req,
                   enum evhttp_cmd_type cmd_type,
                   const char *uri) {
-    if (!http_conn_ || !dk_http_req || !uri)
+    struct evhttp_connection *conn = get_http_conn();
+    if (!conn || !dk_http_req || !uri)
       return false;
     
     return 0 == evhttp_make_request(
-        http_conn_, dk_http_req->get_http_req(), cmd_type, uri);
+        conn, dk_http_req->get_http_req(), cmd_type, uri);
   }
 
-  virtual void CloseCallback() {}
+
+  virtual void CloseCallback(struct evhttp_connection *conn) {}
 
 private:
   static void EventHttpCloseCb(struct evhttp_connection *conn, void *arg);
 
 protected:
-  struct evhttp_connection *http_conn_;
+  std::vector<struct evhttp_connection *> http_conns_;
   std::string               host_;
   unsigned short            port_;
+  int                       last_conn_idx_; 
 };
 
 #endif
