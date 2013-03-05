@@ -3,7 +3,8 @@ LIBS=../libdonkey_server.a
 CXXFLAGS=-g -I.. -D_DONKEY_DEBUG
 LDFLAGS=-levent
 
-all:echo_srv http_client tcp_client
+PROGS=echo_srv http_client tcp_client
+all:$(PROGS)
 
 .PHONY:all
 
@@ -18,4 +19,4 @@ tcp_client:tcp_client.o $(LIBS)
 
 .PHONY:clean
 clean:
-	rm *.o echo_srv
+	rm *.o $(PROGS)
