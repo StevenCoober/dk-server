@@ -5,8 +5,6 @@
 #include <stdio.h>
 
 #include "donkey_core.h"
-//#include "donkey_common.h"
-#include "main.h"
 
 #undef dlog1
 #define dlog1
