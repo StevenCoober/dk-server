@@ -6,8 +6,7 @@
 
 #include "donkey_core.h"
 
-#undef dlog1
-#define dlog1
+#define dlog1 printf
 
 using namespace std;
 

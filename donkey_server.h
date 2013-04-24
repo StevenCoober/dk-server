@@ -7,7 +7,7 @@
 #define __DONKEY_SERVER_INCLUDE__
 
 #include "donkey_common.h"
-#include "donkey_thread.h"
+#include "donkey_ev_thread.h"
 
 struct event_base;
 struct evconnlistener;
