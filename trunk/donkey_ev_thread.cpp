@@ -4,7 +4,7 @@
  */
 
 #include "donkey_common.h"
-#include "donkey_thread.h"
+#include "donkey_ev_thread.h"
 
 bool DonkeyEventThread::Init() {
   base_ = event_base_new();

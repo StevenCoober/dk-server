@@ -11,7 +11,7 @@
 #define dlog1
 
 #define HTTP_HOST "localhost"
-#define HTTP_PORT 8086
+#define HTTP_PORT 8087
 #define HTTP_POST_DATA "aaaaaaaaaaaaaaaaaaaaa"
 #define PARALLEL 10
 
@@ -29,8 +29,7 @@ static long recv_http_resps = 0;
 
 class MyHttpRequest: public DonkeyHttpRequest {
   virtual void HandleResponse(struct evhttp_request *req, void *arg) {
-    //dlog1("MyHttpRequest HandleResponse\n"); 
-    //DonkeyHttpRequest::DebugResponse(req);
+    DonkeyHttpRequest::DebugResponse(req);
     recv_http_resps++;
     http_run_once();
   }
@@ -89,7 +88,7 @@ static bool http_run_once() {
     req->AddHeader("Content-length", temp);
     req->AddPostData((void *)HTTP_POST_DATA, post_data_len);
 
-    if (!s_http_client->SendRequest(req, EVHTTP_REQ_POST, "/index.html")) {
+    if (!s_http_client->SendRequest(req, EVHTTP_REQ_POST, "/uccommon/")) {
       delete req;
     }
   }
