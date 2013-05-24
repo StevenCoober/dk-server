@@ -105,6 +105,18 @@ public:
     }
   }
 
+  void SetLocalAddress(const char *address) {
+    for (size_t i = 0; i < http_conns_.size(); i++) {
+      evhttp_connection_set_local_address(http_conns_[i], address);
+    }
+  }
+
+  void SetLocalPort(int port) {
+    for (size_t i = 0; i < http_conns_.size(); i++) {
+      evhttp_connection_set_local_port(http_conns_[i], port);
+    }
+  }
+
   /* defined in <event2/http.h>
    * enum evhttp_cmd_type {
         EVHTTP_REQ_GET     = 1 << 0,
