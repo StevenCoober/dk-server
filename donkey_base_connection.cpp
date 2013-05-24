@@ -31,7 +31,8 @@ DonkeyBaseConnection::DonkeyBaseConnection()
       state_(DKCON_DISCONNECTED),
       kind_(CON_INCOMING),
       error_(DKCON_ERROR_NONE),
-      temp_output_buf_(NULL) {
+      temp_output_buf_(NULL),
+      bind_port_(0) {
 }
 
 DonkeyBaseConnection::~DonkeyBaseConnection() {
@@ -106,7 +107,7 @@ bool DonkeyBaseConnection::StartRead() {
   assert(bufev_);
 
     /* Set up an event to read data */
-	DisableWrite();
+	//DisableWrite();
 	EnableRead();
 	state_ = DKCON_READING;
 	/* Reset the bufferevent callbacks */

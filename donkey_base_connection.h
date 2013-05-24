@@ -205,6 +205,14 @@ public:
     else
       bufferevent_settimeout(bufev_, DK_READ_TIMEOUT, DK_WRITE_TIMEOUT);
   }
+  
+  void set_bind_address(const char *address) {
+    bind_address_ = address;
+  }
+
+  void set_bind_port(int port) {
+    bind_port_ = port;
+  }
    
   static const char *StrError(DonkeyConnectionError error) {
     switch (error) {
@@ -286,7 +294,9 @@ protected:
   struct evbuffer         *temp_output_buf_;
 
 private:
-  static int last_conn_id_;  
+  static int last_conn_id_;
+  std::string bind_address_;
+  int         bind_port_;
 };
 
 #endif
