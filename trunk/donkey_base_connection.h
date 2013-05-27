@@ -33,6 +33,7 @@ public:
 
   bool StartRead();
   bool StartWrite();
+  int TryWrite();
 
   void EnableRead() {
     int event = bufferevent_get_enabled(bufev_);
