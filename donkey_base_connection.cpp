@@ -107,7 +107,7 @@ bool DonkeyBaseConnection::StartRead() {
   assert(bufev_);
 
     /* Set up an event to read data */
-	//DisableWrite();
+	DisableWrite();
 	EnableRead();
 	state_ = DKCON_READING;
 	/* Reset the bufferevent callbacks */
@@ -133,19 +133,57 @@ bool DonkeyBaseConnection::StartWrite() {
 
   assert(bufev_);
 
+  if (evbuffer_get_length(get_output_buffer()) == 0)
+    return true;
+
   state_ = DKCON_WRITING; 
+
+  int res = TryWrite();
+  if (res < 0) {
+    Fail(DKCON_ERROR_ERRNO);
+    return false;
+  } else if (res == 0) {
+    Fail(DKCON_ERROR_EOF);
+    return false;
+  }
+
+  if (evbuffer_get_length(get_output_buffer()) == 0) {
+    WriteDone();
+    return true;
+  }
   EnableWrite();
 
 	/* Disable the read callback: we don't actually care about data;
 	 * we only care about close detection.  (We don't disable reading,
 	 * since we *do* want to learn about any close events.) */
+  /*
 	bufferevent_setcb(bufev_,
-	    NULL, /*read*/
+	    NULL,
 	    EventWriteCb,
 	    EventErrorCb,
 	    this);
+  */
   
   return true;
+}
+
+static const int atmost = 16348;
+int DonkeyBaseConnection::TryWrite() {
+  //return 1;
+  evbuffer_unfreeze(get_output_buffer(), 1);
+  int res = evbuffer_write(get_output_buffer(), fd_);
+  evbuffer_freeze(get_output_buffer(), 1);
+
+  if (res == -1) {
+    int err = evutil_socket_geterror(fd_);
+    if (err == EINTR || err == EAGAIN)
+      return 1;
+    else
+      return -1;
+  } else if (res == 0) {
+    return 0;
+  }
+  return 2;
 }
 
 void DonkeyBaseConnection::ReadHandler() {
