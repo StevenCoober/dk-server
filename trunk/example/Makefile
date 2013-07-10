@@ -1,7 +1,7 @@
 
-LIBS=../libdonkey_server.a /home/lijian2/local/libevent/lib/libevent.a /home/lijian2/local/libevent/lib/libevent_pthreads.a
+LIBS=../libdonkey_server.a
 CXXFLAGS=-g -I.. -D_DONKEY_DEBUG
-LDFLAGS=-lrt
+LDFLAGS=-lrt -levent -levent_pthreads
 
 PROGS=echo_srv http_client tcp_client
 all:$(PROGS)
