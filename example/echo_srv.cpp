@@ -54,8 +54,8 @@ class SrvConnection: public DonkeyBaseConnection {
       } else {
         set_keep_alive(true);
       }
-      //Send(buf, nread);
-      Send(RESP_DATA, strlen(RESP_DATA));
+      Send(buf, nread);
+      //Send(RESP_DATA, strlen(RESP_DATA));
     } else
       return READ_BAD_CLIENT;
     
