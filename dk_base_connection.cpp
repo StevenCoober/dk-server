@@ -19,8 +19,7 @@ const char *DKCON_STATE_NAMES[] = {
 };
 
 DKBaseConnection::DKBaseConnection()
-    : server_(NULL),
-      inited_(false), 
+    : inited_(false), 
       base_(NULL),
       port_(0),
       fd_(-1),
@@ -32,7 +31,8 @@ DKBaseConnection::DKBaseConnection()
       kind_(CON_INCOMING),
       error_(DKCON_ERROR_NONE),
       temp_output_buf_(NULL),
-      bind_port_(0) {
+      bind_port_(0),
+      incoming_conn_free_cb_(NULL) {
 }
 
 DKBaseConnection::~DKBaseConnection() {
@@ -202,7 +202,7 @@ void DKBaseConnection::ReadHandler() {
         state_ = DKCON_READING;
 
       while (!stop && nreqs-- > 0) {
-        read_status = ReadCallback();
+        read_status = OnRead();
 
         switch (read_status) {
         case READ_ALL_DATA:
@@ -256,12 +256,12 @@ void DKBaseConnection::ReadDone() {
 }
 
 void DKBaseConnection::WriteDone() {
-  WriteCallback();
+  OnWrite();
 
   if (kind_ == CON_INCOMING) {
     if (!keep_alive()) {
       Reset(); 
-      AddToFreeConn();
+      FreeIncomingConn();
       return;
     }
     
@@ -371,7 +371,7 @@ void DKBaseConnection::Fail(DKConnectionError error) {
   if (keep_alive() &&
       error == DKCON_ERROR_TIMEOUT &&
       state_ != DKCON_CONNECTING) {
-    ErrorCallback(error);
+    OnError(error);
     if (state_ == DKCON_WRITING)
       EnableWrite();
     else
@@ -387,22 +387,19 @@ void DKBaseConnection::Fail(DKConnectionError error) {
       DKCON_STATE_NAMES[get_state()]);
 
   DisableReadWrite();
-  ErrorCallback(error);
+  OnError(error);
   Reset();
 
   if (kind_ == CON_INCOMING) {
-    AddToFreeConn();
+    FreeIncomingConn();
     return;
-  } else {
-    ResetCallback();
   }
 }
 
 void DKBaseConnection::ConnectFail(DKConnectionError error) {
   error_ = error;
-  ErrorCallback(error);
+  OnError(error);
   Reset();
-  ResetCallback();
 }
 
 void DKBaseConnection::Reset() {
@@ -416,7 +413,7 @@ void DKBaseConnection::Reset() {
 
   if (fd_ != -1) {
     //if (IsConnected())
-      CloseCallback();
+      OnClose();
 
     shutdown(fd_, SHUT_WR);
     close(fd_);
@@ -515,7 +512,7 @@ bool DKBaseConnection::Connect() {
 }
 
 void DKBaseConnection::ConnectMade() {
-  ConnectedCallback();
+  OnConnect();
 
   if (kind_ == CON_OUTGOING) {
     set_state(DKCON_IDLE);
@@ -538,7 +535,7 @@ void DKBaseConnection::ConnectMade() {
   }
 }
 
-void DKBaseConnection::AddToFreeConn() {
-  if (server_)
-    server_->FreeConn(this);
+void DKBaseConnection::FreeIncomingConn() {
+  if (incoming_conn_free_cb_)
+    incoming_conn_free_cb_(this, incoming_conn_free_cb_arg_);
 }

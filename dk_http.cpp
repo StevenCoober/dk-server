@@ -123,7 +123,7 @@ void DKHttpClient::EventHttpCloseCb(struct evhttp_connection *conn, void *arg) {
   DKHttpClient *http_client = (DKHttpClient *)arg;
   
   if (http_client) 
-    http_client->CloseCallback(conn);
+    http_client->OnClose(conn);
 }
 
 

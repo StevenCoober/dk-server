@@ -144,7 +144,7 @@ public:
   }
 
 
-  virtual void CloseCallback(struct evhttp_connection *conn) {}
+  virtual void OnClose(struct evhttp_connection *conn) {}
 
 private:
   static void EventHttpCloseCb(struct evhttp_connection *conn, void *arg);

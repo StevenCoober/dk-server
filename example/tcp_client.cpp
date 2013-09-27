@@ -12,7 +12,7 @@
 static DKBaseServer *server;
 
 class MyConnection: public DKBaseConnection {
-  virtual enum READ_STATUS ReadCallback() {
+  virtual enum READ_STATUS OnRead() {
     set_keep_alive(true);
     char *resp = (char *)evbuffer_pullup(get_input_buffer(), -1);
     dlog1(">>>>>>>>>>>>>>\n");
@@ -23,17 +23,17 @@ class MyConnection: public DKBaseConnection {
     return READ_ALL_DATA;
   }
 
-  virtual void ConnectedCallback() {
+  virtual void OnConnect() {
     dlog1("new Connection fd:%d %s:%d\n", fd_, host_.c_str(), port_);
   }
   
-  virtual void CloseCallback() {
+  virtual void OnClose() {
     dlog1("Connection close fd:%d %s:%d\n",
         fd_, host_.c_str(), port_); 
     server->Stop();
   }
 
-  virtual void ErrorCallback() {
+  virtual void OnError() {
     dlog1("Connection Error %s\n", this->get_error_string());
     server->Stop();
   }

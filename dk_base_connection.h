@@ -12,8 +12,6 @@
 
 struct event_base;
 
-class DKBaseServer;
-
 class DKBaseConnection {
 public:
   DKBaseConnection();
@@ -238,20 +236,25 @@ public:
     }
   }
 
+  void set_incoming_conn_free_cb(
+      void (*cb)(DKBaseConnection *, void *), void *arg) {
+    incoming_conn_free_cb_ = cb;
+    incoming_conn_free_cb_arg_ = arg;
+  }
+
 public:
   void Fail(DKConnectionError error);
   void ConnectFail(DKConnectionError error);
 
 protected:
-  void AddToFreeConn();
+  void FreeIncomingConn();
 
-  virtual void ConnectedCallback() {}
-  virtual void CloseCallback() {} 
-  virtual void ErrorCallback(DKConnectionError error) {}
-  virtual void WriteCallback() {}
-  virtual void ResetCallback() {}
+  virtual void OnConnect() {}
+  virtual void OnClose() {} 
+  virtual void OnError(DKConnectionError error) {}
+  virtual void OnWrite() {}
 
-  virtual enum READ_STATUS ReadCallback() {
+  virtual enum READ_STATUS OnRead() {
     evbuffer_drain(bufferevent_get_input(bufev_), -1); 
     return READ_ALL_DATA; 
   } 
@@ -275,9 +278,6 @@ private:
                              short which,
                              void *arg);  
 
-public:
-   DKBaseServer     *server_; 
-
 protected:
   bool               inited_;
   struct event_base *base_;
@@ -298,6 +298,8 @@ private:
   static int last_conn_id_;
   std::string bind_address_;
   int         bind_port_;
+  void      (*incoming_conn_free_cb_)(DKBaseConnection *, void *);
+  void       *incoming_conn_free_cb_arg_;
 };
 
 #endif

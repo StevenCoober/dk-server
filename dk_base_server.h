@@ -62,6 +62,9 @@ protected:
   }
 
 private:
+  static void IncomingConnFreeCallback(DKBaseConnection *conn, void *arg);
+
+private:
   static void ListenerCallback(struct evconnlistener *listener,
                                int fd,
                                struct sockaddr *sa,
