@@ -114,7 +114,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  server->set_timeout(3600);
+  server->set_timeout(10);
   server->EventLoop();
 
   delete server;

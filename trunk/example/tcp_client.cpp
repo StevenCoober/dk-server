@@ -6,8 +6,8 @@
 #include "dk_core.h"
 
 #define dlog1 printf
-#define HOST "121.14.161.187"
-#define PORT 8002
+#define HOST "localhost"
+#define PORT 60006
 
 static DKBaseServer *server;
 
