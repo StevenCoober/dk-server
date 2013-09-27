@@ -23,7 +23,6 @@ include $(DEPS)
 .PHONY:clean
 clean:
 	rm $(LIB_NAME) $(OBJECTS)
-	rm $(DEPS)
 
 .PHONY:distclean
 distclean:
