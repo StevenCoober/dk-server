@@ -6,18 +6,18 @@
 #ifndef __DONKEY_BASE_CONNECTION_INCLUDE__
 #define __DONKEY_BASE_CONNECTION_INCLUDE__
 
-#include "donkey_common.h"
-#include "donkey_internal.h"
-#include "donkey_util.h"
+#include "dk_common.h"
+#include "dk_internal.h"
+#include "dk_util.h"
 
 struct event_base;
 
-class DonkeyServer;
+class DKBaseServer;
 
-class DonkeyBaseConnection {
+class DKBaseConnection {
 public:
-  DonkeyBaseConnection();
-  virtual ~DonkeyBaseConnection();
+  DKBaseConnection();
+  virtual ~DKBaseConnection();
   
   bool Init(struct event_base *base,
             int fd,
@@ -168,11 +168,11 @@ public:
     return port_;
   }
 
-  DonkeyConnectionState get_state() {
+  DKConnectionState get_state() {
     return state_;
   }
 
-  void set_state(DonkeyConnectionState state) {
+  void set_state(DKConnectionState state) {
     state_ = state; 
   }
 
@@ -180,7 +180,7 @@ public:
     return base_;
   }
 
-  DonkeyConnectionError get_error() {
+  DKConnectionError get_error() {
     return error_; 
   }
 
@@ -215,7 +215,7 @@ public:
     bind_port_ = port;
   }
    
-  static const char *StrError(DonkeyConnectionError error) {
+  static const char *StrError(DKConnectionError error) {
     switch (error) {
     case DKCON_ERROR_TIMEOUT:
       return "connection timeout";
@@ -239,15 +239,15 @@ public:
   }
 
 public:
-  void Fail(DonkeyConnectionError error);
-  void ConnectFail(DonkeyConnectionError error);
+  void Fail(DKConnectionError error);
+  void ConnectFail(DKConnectionError error);
 
 protected:
   void AddToFreeConn();
 
   virtual void ConnectedCallback() {}
   virtual void CloseCallback() {} 
-  virtual void ErrorCallback(DonkeyConnectionError error) {}
+  virtual void ErrorCallback(DKConnectionError error) {}
   virtual void WriteCallback() {}
   virtual void ResetCallback() {}
 
@@ -276,7 +276,7 @@ private:
                              void *arg);  
 
 public:
-   DonkeyServer     *server_; 
+   DKBaseServer     *server_; 
 
 protected:
   bool               inited_;
@@ -289,9 +289,9 @@ protected:
   int                id_;
 
   struct bufferevent      *bufev_;
-  DonkeyConnectionState    state_;
-  DonkeyConnectionKind     kind_;
-  DonkeyConnectionError    error_;
+  DKConnectionState    state_;
+  DKConnectionKind     kind_;
+  DKConnectionError    error_;
   struct evbuffer         *temp_output_buf_;
 
 private:
