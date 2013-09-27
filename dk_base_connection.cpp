@@ -368,6 +368,7 @@ cleanup:
 void DKBaseConnection::Fail(DKConnectionError error) {
   error_ = error;
 
+  /*
   if (keep_alive() &&
       error == DKCON_ERROR_TIMEOUT &&
       state_ != DKCON_CONNECTING) {
@@ -380,7 +381,7 @@ void DKBaseConnection::Fail(DKConnectionError error) {
     error_ = DKCON_ERROR_NONE;
     return;
   }
-
+  */
   
   DK_DEBUG("[error] %s: %s for %s:%d on %d %s\n", __func__, StrError(error),
       get_host().c_str(), get_port(), get_fd(),

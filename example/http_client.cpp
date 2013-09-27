@@ -5,13 +5,9 @@
 #include <stdio.h>
 
 #include "dk_core.h"
-//#include "dk_common.h"
-
-#undef dlog1
-#define dlog1
 
 #define HTTP_HOST "localhost"
-#define HTTP_PORT 8088
+#define HTTP_PORT 60006
 #define HTTP_POST_DATA "aaaaaaaaaaaaaaaaaaaaa"
 #define PARALLEL 1
 #define TIMEOUT 3600
@@ -50,8 +46,6 @@ static bool http_run_once() {
     if (!s_http_client->Init(ev_thread->get_base(), HTTP_HOST, HTTP_PORT, HTTP_CONNS))
       return false;
 
-    s_http_client->SetLocalAddress("192.168.3.182");
-    s_http_client->SetLocalPort(0);
     s_http_client->SetTimeout(HTTP_CONNS);
   }
 
@@ -103,14 +97,14 @@ int main(int argc, char **argv) {
   ev_thread = new DKEventThread();
 
   if (!ev_thread || !ev_thread->Init()) {
-    dlog1("new DKBaseServer Init error\n");
+    fprintf(stderr, "new DKBaseServer Init error\n");
     return 1;
   }
 
   signal(SIGPIPE, SIG_IGN);
   signal(SIGHUP, SIG_IGN);
 
-  dlog1("begin http_load run ....");
+  fprintf(stderr, "begin http_load run ....");
   http_run_once();
   ev_thread->ThreadRoutine();
 
