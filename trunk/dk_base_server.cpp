@@ -99,7 +99,7 @@ bool DKBaseServer::MakeConnection(int fd,
   } else
     conns_map_[conn->get_id()] = conn;
 
-  conn->server_ = this;
+  conn->set_incoming_conn_free_cb(IncomingConnFreeCallback, this);
 
   ConnectionMade(conn);
 
@@ -158,6 +158,13 @@ void DKBaseServer::ClockHandler(int fd, short which, void *arg) {
   evtimer_set(&clockevent, ClockHandler, arg);
   event_base_set(server->get_base(), &clockevent);
   evtimer_add(&clockevent, &t);
+}
+
+void DKBaseServer::IncomingConnFreeCallback(
+    DKBaseConnection *conn, void *arg) {
+  DKBaseServer *me = (DKBaseServer *)arg;
+  if (me)
+    me->FreeConn(conn);
 }
 
 void DKBaseServer::FreeConn(DKBaseConnection *conn) {

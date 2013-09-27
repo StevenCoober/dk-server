@@ -17,29 +17,29 @@ static MyServer *server;
 
 class SrvConnection: public DKBaseConnection {
 
-  virtual void ConnectedCallback() {
+  virtual void OnConnect() {
     dlog1("new SrvConnection fd:%d %s:%d\n", fd_, host_.c_str(), port_);
   }
   
-  virtual void CloseCallback() {
+  virtual void OnClose() {
     dlog1("SrvConnection close fd:%d %s:%d\n",
         fd_, host_.c_str(), port_); 
   }
 
-  virtual void ErrorCallback() {
+  virtual void OnError() {
     dlog1("SrvConnection Error %s\n", this->get_error_string());
   }
 
-  virtual void WriteCallback() {
+  virtual void OnWrite() {
     //dlog1("SrvConnection %s\n", __func__);
 
   }
 
-  virtual enum READ_STATUS ReadCallback() {
+  virtual enum READ_STATUS OnRead() {
     struct evbuffer *inbuf = get_input_buffer();
     size_t inbuf_size = evbuffer_get_length(inbuf);
     
-    //dlog1("ReadCallback %d\n", inbuf_size);
+    //dlog1("OnRead %d\n", inbuf_size);
     if (inbuf_size <= 0)
       return READ_BAD_CLIENT;
     
