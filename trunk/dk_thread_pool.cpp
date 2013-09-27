@@ -3,9 +3,9 @@
  * Copyright (C) lijian2@ucweb.com
  */
 
-#include "thread_pool.h"
+#include "dk_thread_pool.h"
 
-bool ThreadPool::Init(int threads) {
+bool DKThreadPool::Init(int threads) {
   if (threads <= 0)
     return false;
 
@@ -25,7 +25,7 @@ bool ThreadPool::Init(int threads) {
   return true;
 }
 
-bool ThreadPool::CallInThread(deferred_cb_fn cb, void *arg) {
+bool DKThreadPool::CallInThread(deferred_cb_fn cb, void *arg) {
   que_.push(DeferredCb(cb, arg));
   return 0 == sem_post(&sem_);
 }
