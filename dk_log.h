@@ -30,8 +30,8 @@ public:
 
       log_func_(buf, fmt_len);
     } else {
-      FILE *f = fstream_?fstream_:stderr;
-      vfprintf(f, format, va);
+      if (fstream_)
+        vfprintf(fstream_, format, va);
     }
     va_end(va);
   }
