@@ -107,6 +107,24 @@ public:
     return true;
   }
 
+  bool SendFile(int fd, ev_off_t offset, ev_off_t length) {
+    if (kind_ == CON_OUTGOING) {
+      if (!IsConnected()) {
+        if (!Connect())
+          return false;
+        else
+          return 0 == evbuffer_add_file(temp_output_buf_, fd, offset, length);
+      }
+
+      AddOutputFile(fd, offset, length);
+      return StartWrite();
+    } else {
+      AddOutputFile(fd, offset, length);
+      return StartWrite();
+    }
+    return true;
+  }
+
   void AddOutputBuffer(struct evbuffer *buf) {
     assert(buf);
     assert(bufev_);
@@ -121,6 +139,11 @@ public:
   void AddOutputBuffer(const void *data, int len) {
     assert(bufev_);
     evbuffer_add(get_output_buffer(), data, len); 
+  }
+
+  void AddOutputFile(int fd, ev_off_t offset, ev_off_t length) {
+    assert(bufev_);
+    evbuffer_add_file(get_output_buffer(), fd, offset, length);
   }
 
   bool IsConnected() {
